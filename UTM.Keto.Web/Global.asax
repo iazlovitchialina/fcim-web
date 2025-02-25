@@ -1,0 +1,1 @@
+﻿<%@ Application Codebehind="Global.asax.cs" Inherits="UTM.Keto.Web.MvcApplication" Language="C#" %>
