@@ -1,19 +1,44 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace UTM.Keto.Domain
 {
-    public class Booking
+    [Table("Bookings")]
+    public class Booking : BaseEntity
     {
-        public Guid Id { get; set; }
+        [Required]
         public Guid UserId { get; set; }
-        public User User { get; set; }
+        
+        [ForeignKey("UserId")]
+        public virtual User User { get; set; }
     
+        [Required]
         public Guid RoomId { get; set; }
-        public Room Room { get; set; }
+        
+        [ForeignKey("RoomId")]
+        public virtual Room Room { get; set; }
     
+        [Required]
+        [Column(TypeName = "datetime2")]
         public DateTime CheckInDate { get; set; }
+        
+        [Required]
+        [Column(TypeName = "datetime2")]
         public DateTime CheckOutDate { get; set; }
+        
+        [Required]
         public BookingStatus Status { get; set; }
+        
+        public decimal TotalPrice { get; set; }
+        
+        public virtual ICollection<Payment> Payments { get; set; }
+        
+        public Booking()
+        {
+            Payments = new List<Payment>();
+        }
     }
 
     public enum BookingStatus
