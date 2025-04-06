@@ -1,0 +1,82 @@
+﻿@model IEnumerable<UTM.Keto.Web.Models.ReviewViewModel>
+
+@{
+    ViewBag.Title = "Отзывы";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container my-5">
+    <h2 class="mb-4">Отзывы пользователей</h2>
+    
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <a href="@Url.Action("Create")" class="btn btn-primary">
+                <i class="fas fa-plus-circle me-2"></i> Оставить отзыв
+            </a>
+        </div>
+    </div>
+    
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">
+            <i class="fas fa-check-circle me-2"></i> @TempData["SuccessMessage"]
+        </div>
+    }
+    
+    @if (Model.Any())
+    {
+        <div class="row">
+            @foreach (var review in Model)
+            {
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100">
+                        <div class="card-header bg-white">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">@review.Title</h5>
+                                <div>
+                                    @for (int i = 1; i <= 5; i++)
+                                    {
+                                        if (i <= review.Rating)
+                                        {
+                                            <i class="fas fa-star text-warning"></i>
+                                        }
+                                        else
+                                        {
+                                            <i class="far fa-star text-warning"></i>
+                                        }
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text">@review.Content</p>
+                            @if (!string.IsNullOrEmpty(review.ProductName))
+                            {
+                                <p class="text-muted">
+                                    <strong>Товар:</strong> 
+                                    <a href="@Url.Action("Details", "Shop", new { id = review.ProductId })">@review.ProductName</a>
+                                </p>
+                            }
+                        </div>
+                        <div class="card-footer bg-white text-muted">
+                            <small>
+                                <i class="fas fa-user me-1"></i> @review.UserName
+                                <span class="mx-2">|</span>
+                                <i class="fas fa-calendar me-1"></i> @review.CreatedDate.ToString("dd.MM.yyyy HH:mm")
+                            </small>
+                            <a href="@Url.Action("Details", new { id = review.Id })" class="btn btn-sm btn-outline-primary float-end">
+                                <i class="fas fa-eye"></i> Подробнее
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info">
+            <p>Нет опубликованных отзывов. Будьте первым, кто оставит отзыв!</p>
+        </div>
+    }
+</div> 

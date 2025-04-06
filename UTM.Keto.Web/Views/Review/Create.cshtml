@@ -1,0 +1,118 @@
+﻿@model UTM.Keto.Web.Models.CreateReviewViewModel
+
+@{
+    ViewBag.Title = "Оставить отзыв";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container my-5">
+    <h2 class="mb-4">Оставить отзыв</h2>
+    
+    <div class="row">
+        <div class="col-md-12 mb-4">
+            <a href="@Url.Action("Index")" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-left me-2"></i> Вернуться к отзывам
+            </a>
+        </div>
+    </div>
+    
+    @if (ViewBag.ProductName != null)
+    {
+        <div class="alert alert-info mb-4">
+            <i class="fas fa-info-circle me-2"></i> Вы оставляете отзыв о товаре: <strong>@ViewBag.ProductName</strong>
+        </div>
+    }
+    
+    <div class="card">
+        <div class="card-body">
+            @using (Html.BeginForm())
+            {
+                @Html.AntiForgeryToken()
+                @Html.HiddenFor(m => m.ProductId)
+                
+                <div class="mb-3">
+                    @Html.LabelFor(m => m.Title, new { @class = "form-label" })
+                    @Html.TextBoxFor(m => m.Title, new { @class = "form-control", placeholder = "Заголовок отзыва" })
+                    @Html.ValidationMessageFor(m => m.Title, "", new { @class = "text-danger" })
+                </div>
+                
+                <div class="mb-3">
+                    @Html.LabelFor(m => m.Content, new { @class = "form-label" })
+                    @Html.TextAreaFor(m => m.Content, new { @class = "form-control", rows = 5, placeholder = "Опишите ваши впечатления..." })
+                    @Html.ValidationMessageFor(m => m.Content, "", new { @class = "text-danger" })
+                </div>
+                
+                <div class="mb-4">
+                    @Html.LabelFor(m => m.Rating, new { @class = "form-label d-block" })
+                    <div class="rating-container">
+                        <div class="rating">
+                            @for (int i = 5; i >= 1; i--)
+                            {
+                                <input type="radio" id="star@(i)" name="Rating" value="@i" @(Model.Rating == i ? "checked" : "") />
+                                <label for="star@(i)"><i class="fas fa-star"></i></label>
+                            }
+                        </div>
+                        <span class="ms-3 rating-text">Выберите оценку от 1 до 5</span>
+                    </div>
+                    @Html.ValidationMessageFor(m => m.Rating, "", new { @class = "text-danger" })
+                </div>
+                
+                <div class="alert alert-warning mb-4">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Обратите внимание:</strong> Ваш отзыв будет опубликован после проверки модератором.
+                </div>
+                
+                <div class="text-end">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-paper-plane me-2"></i> Отправить отзыв
+                    </button>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+    <style>
+        .rating {
+            display: inline-flex;
+            flex-direction: row-reverse;
+        }
+        
+        .rating input {
+            display: none;
+        }
+        
+        .rating label {
+            cursor: pointer;
+            font-size: 1.5rem;
+            padding: 0 0.1em;
+            color: #ddd;
+        }
+        
+        .rating input:checked ~ label,
+        .rating:not(:checked) > label:hover,
+        .rating:not(:checked) > label:hover ~ label {
+            color: #FFD700;
+        }
+        
+        .rating-container {
+            display: flex;
+            align-items: center;
+        }
+        
+        .rating-text {
+            color: #6c757d;
+        }
+    </style>
+    
+    <script>
+        $(function() {
+            $('.rating label').on('click', function() {
+                $(this).parent().find('label').css('color', '#ddd');
+                $(this).css('color', '#FFD700').prevAll('label').css('color', '#FFD700');
+            });
+        });
+    </script>
+} 

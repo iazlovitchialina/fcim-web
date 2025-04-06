@@ -1,0 +1,167 @@
+﻿@model IEnumerable<UTM.Keto.Web.Models.ReviewViewModel>
+
+@{
+    ViewBag.Title = "Модерация отзывов";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container my-5">
+    <h2 class="mb-4">Модерация отзывов</h2>
+    
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">
+            <i class="fas fa-check-circle me-2"></i> @TempData["SuccessMessage"]
+        </div>
+    }
+    
+    @if (Model.Any())
+    {
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Отзывы, ожидающие модерации</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Заголовок</th>
+                                <th>Пользователь</th>
+                                <th>Рейтинг</th>
+                                <th>Дата</th>
+                                <th>Товар</th>
+                                <th>Действия</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var review in Model)
+                            {
+                                <tr>
+                                    <td>@review.Title</td>
+                                    <td>@review.UserName</td>
+                                    <td>
+                                        <div class="rating">
+                                            @for (int i = 1; i <= 5; i++)
+                                            {
+                                                if (i <= review.Rating)
+                                                {
+                                                    <i class="fas fa-star text-warning"></i>
+                                                }
+                                                else
+                                                {
+                                                    <i class="far fa-star text-warning"></i>
+                                                }
+                                            }
+                                        </div>
+                                    </td>
+                                    <td>@review.CreatedDate.ToString("dd.MM.yyyy HH:mm")</td>
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(review.ProductName))
+                                        {
+                                            <a href="@Url.Action("Details", "Shop", new { id = review.ProductId })">@review.ProductName</a>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">-</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <div class="btn-group">
+                                            <a href="@Url.Action("Details", new { id = review.Id })" class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-eye"></i> Просмотр
+                                            </a>
+                                            <button type="button" class="btn btn-sm btn-outline-success" data-bs-toggle="modal" data-bs-target="#approveModal" data-review-id="@review.Id">
+                                                <i class="fas fa-check"></i> Одобрить
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#rejectModal" data-review-id="@review.Id">
+                                                <i class="fas fa-times"></i> Отклонить
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle me-2"></i> Нет отзывов, ожидающих модерации.
+        </div>
+    }
+</div>
+
+<!-- Модальное окно для одобрения отзыва -->
+<div class="modal fade" id="approveModal" tabindex="-1" aria-labelledby="approveModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="approveModalLabel">Подтверждение одобрения</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Вы уверены, что хотите одобрить этот отзыв?</p>
+                <p>После одобрения отзыв будет опубликован и станет виден всем пользователям.</p>
+            </div>
+            <div class="modal-footer">
+                @using (Html.BeginForm("Approve", "Review", FormMethod.Post, new { id = "approveForm" }))
+                {
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" id="approveReviewId" name="id" />
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="submit" class="btn btn-success">Одобрить</button>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно для отклонения отзыва -->
+<div class="modal fade" id="rejectModal" tabindex="-1" aria-labelledby="rejectModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="rejectModalLabel">Отклонение отзыва</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                @using (Html.BeginForm("Reject", "Review", FormMethod.Post, new { id = "rejectForm" }))
+                {
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" id="rejectReviewId" name="id" />
+                    <div class="mb-3">
+                        <label for="comment" class="form-label">Причина отклонения</label>
+                        <textarea class="form-control" id="comment" name="comment" rows="3" placeholder="Укажите причину отклонения отзыва"></textarea>
+                        <div class="form-text">Эта информация будет видна пользователю, оставившему отзыв.</div>
+                    </div>
+                    <div class="d-flex justify-content-end">
+                        <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">Отмена</button>
+                        <button type="submit" class="btn btn-danger">Отклонить</button>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(function () {
+            $('#approveModal').on('show.bs.modal', function (event) {
+                var button = $(event.relatedTarget);
+                var reviewId = button.data('review-id');
+                $('#approveReviewId').val(reviewId);
+            });
+            
+            $('#rejectModal').on('show.bs.modal', function (event) {
+                var button = $(event.relatedTarget);
+                var reviewId = button.data('review-id');
+                $('#rejectReviewId').val(reviewId);
+            });
+        });
+    </script>
+} 
