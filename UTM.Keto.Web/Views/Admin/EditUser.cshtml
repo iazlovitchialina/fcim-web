@@ -1,0 +1,113 @@
+@model UTM.Keto.Domain.User
+
+@{
+    ViewBag.Title = "Edit User";
+}
+
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow border-0 rounded-lg">
+                <div class="card-header bg-gradient-primary text-white py-3 d-flex justify-content-between align-items-center">
+                    <h2 class="mb-0 fw-bold"><i class="fas fa-user-edit me-2"></i>Edit User</h2>
+                    <a href="@Url.Action("Users", "Admin")" class="btn btn-light">
+                        <i class="fas fa-arrow-left me-2"></i>Back to Users
+                    </a>
+                </div>
+                <div class="card-body">
+                    @if (TempData["SuccessMessage"] != null)
+                    {
+                        <div class="alert alert-success mb-4">
+                            <i class="fas fa-check-circle me-2"></i>@TempData["SuccessMessage"]
+                        </div>
+                    }
+
+                    <div class="row mb-4">
+                        <div class="col-md-3 text-center">
+                            <div class="avatar rounded-circle bg-primary bg-opacity-25 text-primary d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 100px; height: 100px; font-size: 48px;">
+                                @Model.FullName.Substring(0, 1).ToUpper()
+                            </div>
+                            <h5 class="fw-bold">@Model.FullName</h5>
+                            <p class="badge rounded-pill @(Model.Role == UTM.Keto.Domain.UserRole.Admin ? "bg-danger" : "bg-info")">
+                                @Model.Role
+                            </p>
+                            <small class="d-block text-muted mt-2">ID: @Model.Id</small>
+                        </div>
+                        <div class="col-md-9">
+                            @using (Html.BeginForm("EditUser", "Admin", FormMethod.Post, new { @class = "form-horizontal" }))
+                            {
+                                @Html.AntiForgeryToken()
+                                @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                                @Html.HiddenFor(model => model.Id)
+
+                                <div class="mb-3 row">
+                                    <label class="col-sm-3 col-form-label">Full Name</label>
+                                    <div class="col-sm-9">
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-user"></i></span>
+                                            @Html.EditorFor(model => model.FullName, new { htmlAttributes = new { @class = "form-control", placeholder = "Enter full name" } })
+                                        </div>
+                                        @Html.ValidationMessageFor(model => model.FullName, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+
+                                <div class="mb-3 row">
+                                    <label class="col-sm-3 col-form-label">Email</label>
+                                    <div class="col-sm-9">
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                                            @Html.EditorFor(model => model.Email, new { htmlAttributes = new { @class = "form-control", placeholder = "Enter email address" } })
+                                        </div>
+                                        @Html.ValidationMessageFor(model => model.Email, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+
+                                <div class="mb-3 row">
+                                    <label class="col-sm-3 col-form-label">Phone Number</label>
+                                    <div class="col-sm-9">
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-phone"></i></span>
+                                            @Html.EditorFor(model => model.PhoneNumber, new { htmlAttributes = new { @class = "form-control", placeholder = "Enter phone number" } })
+                                        </div>
+                                        @Html.ValidationMessageFor(model => model.PhoneNumber, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+
+                                <div class="mb-3 row">
+                                    <label class="col-sm-3 col-form-label">Role</label>
+                                    <div class="col-sm-9">
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-user-shield"></i></span>
+                                            @Html.EnumDropDownListFor(model => model.Role, new { @class = "form-select" })
+                                        </div>
+                                        @Html.ValidationMessageFor(model => model.Role, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+
+                                <div class="mb-3 row">
+                                    <div class="offset-sm-3 col-sm-9">
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="fas fa-save me-1"></i>Save Changes
+                                        </button>
+                                        <a href="@Url.Action("Users", "Admin")" class="btn btn-outline-secondary ms-2">
+                                            <i class="fas fa-times me-1"></i>Cancel
+                                        </a>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer bg-light">
+                    <div class="text-muted small">
+                        <i class="fas fa-info-circle me-1"></i>Last modified: @DateTime.Now.ToString("MMM d, yyyy HH:mm")
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+} 

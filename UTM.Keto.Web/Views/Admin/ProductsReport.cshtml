@@ -1,0 +1,328 @@
+﻿@model List<UTM.Keto.Web.Models.ProductSalesViewModel>
+@{
+    ViewBag.Title = "Отчет по товарам";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    
+    // Вычисляю данные для графиков заранее
+    var top10Products = Model.OrderByDescending(p => p.QuantitySold).Take(10).ToList();
+    var top5Revenue = Model.OrderByDescending(p => p.Revenue).Take(5).ToList();
+    
+    // Вычисляю итоговые значения для таблицы заранее, чтобы избежать повторного вычисления
+    var totalQuantitySold = Model.Sum(x => x.QuantitySold);
+    var totalRevenue = Model.Sum(x => x.Revenue);
+    var averagePrice = totalQuantitySold > 0 ? totalRevenue / totalQuantitySold : 0;
+}
+
+<div class="container-fluid my-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-gradient-info text-white py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h3 class="mb-0 fw-bold"><i class="fas fa-box-open me-2"></i>Отчет по товарам</h3>
+                        <div>
+                            <a href="@Url.Action("Index", "Admin")" class="btn btn-light btn-sm">
+                                <i class="fas fa-arrow-left me-1"></i> Назад к панели управления
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Фильтры и статистика -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <form action="@Url.Action("ProductsReport", "Admin")" method="get" class="mb-4">
+                        <div class="row">
+                            <div class="col-md-4 mb-2">
+                                <label for="startDate" class="form-label">Дата начала</label>
+                                <input type="date" class="form-control" id="startDate" name="startDate" value="@ViewBag.StartDate">
+                            </div>
+                            <div class="col-md-4 mb-2">
+                                <label for="endDate" class="form-label">Дата окончания</label>
+                                <input type="date" class="form-control" id="endDate" name="endDate" value="@ViewBag.EndDate">
+                            </div>
+                            <div class="col-md-4 d-flex align-items-end mb-2">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-filter me-1"></i> Применить фильтр
+                                </button>
+                                <a href="@Url.Action("ProductsReport", "Admin")" class="btn btn-outline-secondary ms-2">
+                                    <i class="fas fa-redo me-1"></i> Сбросить
+                                </a>
+                                <button type="button" class="btn btn-success ms-2" onclick="exportTableToExcel('productsTable', 'products_report')">
+                                    <i class="fas fa-file-excel me-1"></i> Excel
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+
+                    <div class="report-summary">
+                        <div class="summary-item">
+                            <div class="label">Период</div>
+                            <div class="value">@DateTime.Parse(ViewBag.StartDate).ToString("dd.MM.yyyy") - @DateTime.Parse(ViewBag.EndDate).ToString("dd.MM.yyyy")</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="label">Общая выручка</div>
+                            <div class="value text-primary">@ViewBag.TotalRevenue.ToString("C")</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="label">Всего продано товаров</div>
+                            <div class="value text-success">@ViewBag.TotalSold шт.</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="label">Количество наименований</div>
+                            <div class="value text-info">@Model.Count</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- График и таблица -->
+    <div class="row">
+        <div class="col-lg-7">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Топ-10 товаров по продажам</h6>
+                </div>
+                <div class="card-body">
+                    <div class="chart-area">
+                        <canvas id="productsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-5">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Распределение выручки по топ-5 товарам</h6>
+                </div>
+                <div class="card-body">
+                    <div class="chart-pie mb-4">
+                        <canvas id="revenuePieChart"></canvas>
+                    </div>
+                    <div class="mt-4 text-center small">
+                        @foreach (var product in top5Revenue)
+                        {
+                            <span class="me-2">
+                                <i class="fas fa-circle" style="color: var(--chart-color-@(top5Revenue.IndexOf(product)))"></i> @product.ProductName
+                            </span>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Таблица с данными -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Детализация по товарам</h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover" id="productsTable">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Товар</th>
+                                    <th class="text-center">Количество продаж (шт.)</th>
+                                    <th class="text-end">Выручка</th>
+                                    <th class="text-end">Средняя цена</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (Model.Count > 0)
+                                {
+                                    foreach (var item in Model)
+                                    {
+                                        <tr>
+                                            <td>@item.ProductName</td>
+                                            <td class="text-center">@item.QuantitySold</td>
+                                            <td class="text-end">@item.Revenue.ToString("C")</td>
+                                            <td class="text-end">@((item.Revenue / item.QuantitySold).ToString("C"))</td>
+                                        </tr>
+                                    }
+                                }
+                                else
+                                {
+                                    <tr>
+                                        <td colspan="4" class="text-center">Нет данных за выбранный период</td>
+                                    </tr>
+                                }
+                            </tbody>
+                            <tfoot class="table-light fw-bold">
+                                <tr>
+                                    <td>Итого:</td>
+                                    <td class="text-center">@totalQuantitySold</td>
+                                    <td class="text-end">@totalRevenue.ToString("C")</td>
+                                    <td class="text-end">
+                                        @(totalQuantitySold > 0 
+                                            ? averagePrice.ToString("C") 
+                                            : "0,00 ₽")
+                                    </td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+    <script>
+        // Данные для графиков
+        const productData = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(top10Products));
+        const pieData = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(top5Revenue));
+        
+        // Цвета для графиков
+        const chartColors = [
+            'rgba(78, 115, 223, 0.8)',
+            'rgba(28, 200, 138, 0.8)',
+            'rgba(54, 185, 204, 0.8)',
+            'rgba(246, 194, 62, 0.8)',
+            'rgba(231, 74, 59, 0.8)',
+            'rgba(116, 88, 171, 0.8)',
+            'rgba(255, 141, 114, 0.8)',
+            'rgba(109, 215, 176, 0.8)',
+            'rgba(255, 183, 77, 0.8)',
+            'rgba(144, 202, 249, 0.8)'
+        ];
+        
+        // Инициализация графика продаж товаров (горизонтальный бар)
+        const productsCtx = document.getElementById('productsChart').getContext('2d');
+        const productsChart = new Chart(productsCtx, {
+            type: 'bar',
+            data: {
+                labels: productData.map(item => item.ProductName),
+                datasets: [
+                    {
+                        label: 'Количество продаж (шт.)',
+                        backgroundColor: chartColors,
+                        borderColor: chartColors.map(color => color.replace('0.8', '1')),
+                        borderWidth: 1,
+                        data: productData.map(item => item.QuantitySold)
+                    }
+                ]
+            },
+            options: {
+                maintainAspectRatio: false,
+                indexAxis: 'y',
+                layout: {
+                    padding: {
+                        left: 10,
+                        right: 25,
+                        top: 25,
+                        bottom: 0
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: {
+                            display: true,
+                            drawBorder: false
+                        },
+                        ticks: {
+                            beginAtZero: true
+                        }
+                    },
+                    y: {
+                        grid: {
+                            display: false,
+                            drawBorder: false
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: "rgb(255,255,255)",
+                        bodyColor: "#858796",
+                        titleMarginBottom: 10,
+                        titleColor: '#6e707e',
+                        titleFontSize: 14,
+                        borderColor: '#dddfeb',
+                        borderWidth: 1,
+                        xPadding: 15,
+                        yPadding: 15,
+                        displayColors: false,
+                        intersect: false,
+                        mode: 'index',
+                        caretPadding: 10,
+                        callbacks: {
+                            label: function(context) {
+                                return 'Продано: ' + context.parsed.x + ' шт.';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Инициализация графика распределения выручки (пирог)
+        const pieCtx = document.getElementById('revenuePieChart').getContext('2d');
+        const pieChart = new Chart(pieCtx, {
+            type: 'pie',
+            data: {
+                labels: pieData.map(item => item.ProductName),
+                datasets: [{
+                    data: pieData.map(item => item.Revenue),
+                    backgroundColor: chartColors.slice(0, 5),
+                    hoverBackgroundColor: chartColors.slice(0, 5).map(color => color.replace('0.8', '1')),
+                    hoverBorderColor: "rgba(234, 236, 244, 1)",
+                }]
+            },
+            options: {
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: "rgb(255,255,255)",
+                        bodyColor: "#858796",
+                        borderColor: '#dddfeb',
+                        borderWidth: 1,
+                        xPadding: 15,
+                        yPadding: 15,
+                        displayColors: false,
+                        caretPadding: 10,
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.label || '';
+                                const value = context.parsed;
+                                return label + ': ' + value.toLocaleString('ru-RU') + ' ₽';
+                            }
+                        }
+                    }
+                },
+                cutout: '60%'
+            }
+        });
+        
+        // Функция экспорта таблицы в Excel
+        function exportTableToExcel(tableID, filename = '') {
+            const downloadLink = document.createElement("a");
+            const dataType = 'application/vnd.ms-excel';
+            const table = document.getElementById(tableID);
+            const tableHTML = table.outerHTML.replace(/ /g, '%20');
+            
+            filename = filename ? filename + '.xls' : 'excel_data.xls';
+            
+            downloadLink.href = 'data:' + dataType + ', ' + tableHTML;
+            downloadLink.download = filename;
+            downloadLink.click();
+        }
+    </script>
+} 

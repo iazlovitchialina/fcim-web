@@ -1,0 +1,417 @@
+@{
+    ViewBag.Title = "Панель администратора";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid my-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-gradient-primary text-white py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h3 class="mb-0 fw-bold"><i class="fas fa-tachometer-alt me-2"></i>Панель управления</h3>
+                        <div>
+                            <span class="text-white-50">Последнее обновление: @DateTime.Now.ToString("dd.MM.yyyy HH:mm")</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Статистические карточки -->
+    <div class="row">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow-sm h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Выручка (всего)</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@ViewBag.TotalRevenue.ToString("C")</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow-sm h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Заказов</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@ViewBag.TotalOrders</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-shopping-cart fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow-sm h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Пользователей</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@ViewBag.TotalUsers</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-users fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow-sm h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Активных пользователей</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@ViewBag.ActiveUsers</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-user-check fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Графики и таблицы -->
+    <div class="row">
+        <!-- График продаж -->
+        <div class="col-xl-8 col-lg-7">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">Продажи по дням</h6>
+                    <div class="dropdown no-arrow">
+                        <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-right shadow-sm" aria-labelledby="dropdownMenuLink">
+                            <div class="dropdown-header">Действия:</div>
+                            <a class="dropdown-item" href="@Url.Action("SalesReport", "Admin")">Подробный отчет</a>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item" href="#" onclick="exportSalesChart()">Экспорт в PNG</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="chart-area">
+                        <canvas id="salesChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Популярные товары -->
+        <div class="col-xl-4 col-lg-5">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">Популярные товары</h6>
+                    <div class="dropdown no-arrow">
+                        <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-right shadow-sm" aria-labelledby="dropdownMenuLink">
+                            <div class="dropdown-header">Действия:</div>
+                            <a class="dropdown-item" href="@Url.Action("ProductsReport", "Admin")">Подробный отчет</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="chart-pie pt-4 pb-2">
+                        <canvas id="productsChart"></canvas>
+                    </div>
+                    <div class="mt-4 text-center small">
+                        @foreach (var product in ViewBag.PopularProducts)
+                        {
+                            <span class="me-2">
+                                <i class="fas fa-circle" style="color: var(--chart-color-@(ViewBag.PopularProducts.IndexOf(product) % 5))"></i> @product.ProductName
+                            </span>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Таблица последние заказы -->
+        <div class="col-xl-12 col-lg-12">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">Отчеты</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="card border-0 shadow-sm h-100">
+                                <div class="card-body text-center p-4">
+                                    <div class="rounded-circle bg-primary text-white d-inline-flex p-3 mb-3">
+                                        <i class="fas fa-chart-line fa-2x m-2"></i>
+                                    </div>
+                                    <h4 class="fw-bold">Отчет по продажам</h4>
+                                    <p class="text-muted">Анализ продаж по дням, выручка и количество заказов.</p>
+                                    <div class="mt-3">
+                                        <a href="@Url.Action("SalesReport", "Admin")" class="btn btn-primary btn-lg w-100">
+                                            <i class="fas fa-chart-line me-2"></i>Открыть отчет
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card border-0 shadow-sm h-100">
+                                <div class="card-body text-center p-4">
+                                    <div class="rounded-circle bg-success text-white d-inline-flex p-3 mb-3">
+                                        <i class="fas fa-users fa-2x m-2"></i>
+                                    </div>
+                                    <h4 class="fw-bold">Отчет по пользователям</h4>
+                                    <p class="text-muted">Анализ активности пользователей, истории заказов.</p>
+                                    <div class="mt-3">
+                                        <a href="@Url.Action("UsersReport", "Admin")" class="btn btn-success btn-lg w-100">
+                                            <i class="fas fa-users me-2"></i>Открыть отчет
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card border-0 shadow-sm h-100">
+                                <div class="card-body text-center p-4">
+                                    <div class="rounded-circle bg-info text-white d-inline-flex p-3 mb-3">
+                                        <i class="fas fa-box-open fa-2x m-2"></i>
+                                    </div>
+                                    <h4 class="fw-bold">Отчет по товарам</h4>
+                                    <p class="text-muted">Анализ популярности товаров, объемы продаж и выручка.</p>
+                                    <div class="mt-3">
+                                        <a href="@Url.Action("ProductsReport", "Admin")" class="btn btn-info text-white btn-lg w-100">
+                                            <i class="fas fa-box-open me-2"></i>Открыть отчет
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+    <script>
+        // Установка цветов для графиков
+        document.documentElement.style.setProperty('--chart-color-0', '#4e73df');
+        document.documentElement.style.setProperty('--chart-color-1', '#1cc88a');
+        document.documentElement.style.setProperty('--chart-color-2', '#36b9cc');
+        document.documentElement.style.setProperty('--chart-color-3', '#f6c23e');
+        document.documentElement.style.setProperty('--chart-color-4', '#e74a3b');
+        
+        // Данные для графика продаж
+        const salesData = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.DailyOrders));
+        
+        // Данные для графика популярных товаров
+        const productData = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.PopularProducts));
+        
+        // Инициализация графика продаж
+        const salesCtx = document.getElementById('salesChart').getContext('2d');
+        const salesChart = new Chart(salesCtx, {
+            type: 'line',
+            data: {
+                labels: salesData.map(item => new Date(item.Date).toLocaleDateString('ru-RU')),
+                datasets: [
+                    {
+                        label: 'Выручка (₽)',
+                        backgroundColor: 'rgba(78, 115, 223, 0.05)',
+                        borderColor: 'rgba(78, 115, 223, 1)',
+                        pointRadius: 3,
+                        pointBackgroundColor: 'rgba(78, 115, 223, 1)',
+                        pointBorderColor: 'rgba(78, 115, 223, 1)',
+                        pointHoverRadius: 5,
+                        pointHoverBackgroundColor: 'rgba(78, 115, 223, 1)',
+                        pointHoverBorderColor: 'rgba(78, 115, 223, 1)',
+                        pointHitRadius: 10,
+                        pointBorderWidth: 2,
+                        data: salesData.map(item => item.Revenue),
+                        yAxisID: 'y'
+                    },
+                    {
+                        label: 'Кол-во заказов',
+                        backgroundColor: 'rgba(28, 200, 138, 0.05)',
+                        borderColor: 'rgba(28, 200, 138, 1)',
+                        pointRadius: 3,
+                        pointBackgroundColor: 'rgba(28, 200, 138, 1)',
+                        pointBorderColor: 'rgba(28, 200, 138, 1)',
+                        pointHoverRadius: 5,
+                        pointHoverBackgroundColor: 'rgba(28, 200, 138, 1)',
+                        pointHoverBorderColor: 'rgba(28, 200, 138, 1)',
+                        pointHitRadius: 10,
+                        pointBorderWidth: 2,
+                        data: salesData.map(item => item.Count),
+                        yAxisID: 'y1'
+                    }
+                ]
+            },
+            options: {
+                maintainAspectRatio: false,
+                layout: {
+                    padding: {
+                        left: 10,
+                        right: 25,
+                        top: 25,
+                        bottom: 0
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: {
+                            display: false,
+                            drawBorder: false
+                        },
+                        ticks: {
+                            maxTicksLimit: 7
+                        }
+                    },
+                    y: {
+                        type: 'linear',
+                        position: 'left',
+                        ticks: {
+                            maxTicksLimit: 5,
+                            padding: 10,
+                            callback: function(value) {
+                                return value.toLocaleString('ru-RU') + ' ₽';
+                            }
+                        },
+                        grid: {
+                            color: "rgb(234, 236, 244)",
+                            zeroLineColor: "rgb(234, 236, 244)",
+                            drawBorder: false,
+                            borderDash: [2],
+                            zeroLineBorderDash: [2]
+                        }
+                    },
+                    y1: {
+                        type: 'linear',
+                        position: 'right',
+                        ticks: {
+                            maxTicksLimit: 5,
+                            padding: 10
+                        },
+                        grid: {
+                            drawOnChartArea: false
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    },
+                    tooltip: {
+                        backgroundColor: "rgb(255,255,255)",
+                        bodyColor: "#858796",
+                        titleMarginBottom: 10,
+                        titleColor: '#6e707e',
+                        titleFontSize: 14,
+                        borderColor: '#dddfeb',
+                        borderWidth: 1,
+                        xPadding: 15,
+                        yPadding: 15,
+                        displayColors: false,
+                        intersect: false,
+                        mode: 'index',
+                        caretPadding: 10,
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.dataset.label || '';
+                                const value = context.parsed.y;
+                                if (label === 'Выручка (₽)') {
+                                    return label + ': ' + value.toLocaleString('ru-RU') + ' ₽';
+                                } else {
+                                    return label + ': ' + value;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Инициализация графика популярных товаров
+        const productsCtx = document.getElementById('productsChart').getContext('2d');
+        const productsChart = new Chart(productsCtx, {
+            type: 'pie',
+            data: {
+                labels: productData.map(item => item.ProductName),
+                datasets: [{
+                    data: productData.map(item => item.Count),
+                    backgroundColor: [
+                        'rgba(78, 115, 223, 0.8)',
+                        'rgba(28, 200, 138, 0.8)',
+                        'rgba(54, 185, 204, 0.8)',
+                        'rgba(246, 194, 62, 0.8)',
+                        'rgba(231, 74, 59, 0.8)'
+                    ],
+                    hoverBackgroundColor: [
+                        'rgba(78, 115, 223, 1)',
+                        'rgba(28, 200, 138, 1)',
+                        'rgba(54, 185, 204, 1)',
+                        'rgba(246, 194, 62, 1)',
+                        'rgba(231, 74, 59, 1)'
+                    ],
+                    hoverBorderColor: "rgba(234, 236, 244, 1)",
+                }]
+            },
+            options: {
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: "rgb(255,255,255)",
+                        bodyColor: "#858796",
+                        borderColor: '#dddfeb',
+                        borderWidth: 1,
+                        xPadding: 15,
+                        yPadding: 15,
+                        displayColors: false,
+                        caretPadding: 10,
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.label || '';
+                                const value = context.raw;
+                                return label + ': ' + value + ' шт.';
+                            }
+                        }
+                    }
+                },
+                cutout: '60%'
+            }
+        });
+        
+        // Экспорт графика продаж в PNG
+        function exportSalesChart() {
+            const link = document.createElement('a');
+            link.href = salesChart.toBase64Image();
+            link.download = 'sales_chart.png';
+            link.click();
+        }
+    </script>
+} 
