@@ -1,0 +1,84 @@
+@model IEnumerable<UTM.Keto.Web.Models.OrderViewModel>
+
+@{
+    ViewBag.Title = "Manage Orders";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container my-5">
+    <h2 class="mb-4">Manage Orders</h2>
+    
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">
+            <i class="fas fa-check-circle me-2"></i> @TempData["SuccessMessage"]
+        </div>
+    }
+    
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Order #</th>
+                            <th>Customer</th>
+                            <th>Date</th>
+                            <th>Total</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var order in Model)
+                        {
+                            <tr>
+                                <td>@order.OrderNumber</td>
+                                <td>@order.UserName</td>
+                                <td>@order.OrderDate.ToString("MMM dd, yyyy")</td>
+                                <td>$@order.TotalAmount.ToString("F2")</td>
+                                <td>
+                                    @switch (order.CurrentStatus)
+                                    {
+                                        case UTM.Keto.Domain.OrderStatus.New:
+                                            <span class="badge bg-info">New</span>
+                                            break;
+                                        case UTM.Keto.Domain.OrderStatus.Processing:
+                                            <span class="badge bg-primary">Processing</span>
+                                            break;
+                                        case UTM.Keto.Domain.OrderStatus.Shipped:
+                                            <span class="badge bg-warning">Shipped</span>
+                                            break;
+                                        case UTM.Keto.Domain.OrderStatus.Delivered:
+                                            <span class="badge bg-success">Delivered</span>
+                                            break;
+                                        default:
+                                            <span class="badge bg-secondary">@order.Status</span>
+                                            break;
+                                    }
+                                </td>
+                                <td>
+                                    <div class="btn-group">
+                                        <a href="@Url.Action("Details", new { id = order.Id })" class="btn btn-outline-primary btn-sm">
+                                            <i class="fas fa-eye me-1"></i> View
+                                        </a>
+                                        <a href="@Url.Action("UpdateStatus", new { id = order.Id })" class="btn btn-outline-warning btn-sm">
+                                            <i class="fas fa-edit me-1"></i> Update Status
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info">
+            <p>No orders found.</p>
+        </div>
+    }
+</div> 

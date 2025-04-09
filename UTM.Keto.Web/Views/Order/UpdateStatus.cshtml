@@ -1,0 +1,107 @@
+@model UTM.Keto.Web.Models.OrderStatusViewModel
+
+@{
+    ViewBag.Title = "Update Order Status";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container my-5">
+    <div class="row">
+        <div class="col-md-12 mb-4">
+            <a href="@Url.Action("Details", new { id = Model.OrderId })" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-left me-2"></i> Back to Order Details
+            </a>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-6 mx-auto">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Update Order Status</h5>
+                </div>
+                <div class="card-body">
+                    @using (Html.BeginForm())
+                    {
+                        @Html.AntiForgeryToken()
+                        @Html.HiddenFor(m => m.OrderId)
+                        @Html.HiddenFor(m => m.CurrentStatus)
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Current Status</label>
+                            <div>
+                                @switch (Model.CurrentStatus)
+                                {
+                                    case UTM.Keto.Domain.OrderStatus.New:
+                                        <span class="badge bg-info p-2">New</span>
+                                        break;
+                                    case UTM.Keto.Domain.OrderStatus.Processing:
+                                        <span class="badge bg-primary p-2">Processing</span>
+                                        break;
+                                    case UTM.Keto.Domain.OrderStatus.Shipped:
+                                        <span class="badge bg-warning p-2">Shipped</span>
+                                        break;
+                                    case UTM.Keto.Domain.OrderStatus.Delivered:
+                                        <span class="badge bg-success p-2">Delivered</span>
+                                        break;
+                                    default:
+                                        <span class="badge bg-secondary p-2">@Model.CurrentStatus</span>
+                                        break;
+                                }
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="form-label">New Status</label>
+                            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                            
+                            <div class="d-flex flex-column">
+                                @foreach (var status in Model.AvailableStatuses)
+                                {
+                                    <div class="form-check mb-2">
+                                        @Html.RadioButtonFor(m => m.NewStatus, status, new { @class = "form-check-input", id = "status_" + (int)status })
+                                        <label class="form-check-label" for="status_@((int)status)">
+                                            @switch (status)
+                                            {
+                                                case UTM.Keto.Domain.OrderStatus.New:
+                                                    <span class="badge bg-info">New</span>
+                                                    break;
+                                                case UTM.Keto.Domain.OrderStatus.Processing:
+                                                    <span class="badge bg-primary">Processing</span>
+                                                    break;
+                                                case UTM.Keto.Domain.OrderStatus.Shipped:
+                                                    <span class="badge bg-warning">Shipped</span>
+                                                    break;
+                                                case UTM.Keto.Domain.OrderStatus.Delivered:
+                                                    <span class="badge bg-success">Delivered</span>
+                                                    break;
+                                                default:
+                                                    <span class="badge bg-secondary">@status</span>
+                                                    break;
+                                            }
+                                        </label>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                        
+                        <div class="alert alert-warning mb-4">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>Note:</strong> You cannot skip order status steps. Orders must progress in sequence from New → Processing → Shipped → Delivered.
+                        </div>
+                        
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i> Update Status
+                            </button>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+} 
