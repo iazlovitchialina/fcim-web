@@ -1,0 +1,122 @@
+@model UTM.Keto.Web.Models.CheckoutViewModel
+
+@{
+    ViewBag.Title = "Checkout";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container my-5">
+    <h2 class="mb-4">Checkout</h2>
+    
+    <div class="row">
+        <div class="col-md-12 mb-4">
+            <a href="@Url.Action("Cart")" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-left me-2"></i> Back to Cart
+            </a>
+        </div>
+    </div>
+    
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger">
+            <i class="fas fa-exclamation-circle me-2"></i> @TempData["ErrorMessage"]
+        </div>
+    }
+    
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Order Information</h5>
+                </div>
+                <div class="card-body">
+                    @using (Html.BeginForm())
+                    {
+                        @Html.AntiForgeryToken()
+                        
+                        <div class="mb-4">
+                            <h5>Shipping Information</h5>
+                            <hr />
+                            <div class="mb-3">
+                                @Html.LabelFor(m => m.ShippingAddress, new { @class = "form-label" })
+                                @Html.TextAreaFor(m => m.ShippingAddress, new { @class = "form-control", rows = 3, placeholder = "Enter your full shipping address" })
+                                @Html.ValidationMessageFor(m => m.ShippingAddress, "", new { @class = "text-danger" })
+                            </div>
+                            
+                            <div class="mb-3">
+                                @Html.LabelFor(m => m.ShippingMethod, new { @class = "form-label" })
+                                @Html.DropDownListFor(m => m.ShippingMethod, 
+                                    new List<SelectListItem> 
+                                    { 
+                                        new SelectListItem { Text = "Standard Shipping (3-5 business days)", Value = "Standard" },
+                                        new SelectListItem { Text = "Express Shipping (1-2 business days)", Value = "Express" },
+                                        new SelectListItem { Text = "Same Day Delivery", Value = "Same Day" }
+                                    },
+                                    "Select Shipping Method", new { @class = "form-select" })
+                                @Html.ValidationMessageFor(m => m.ShippingMethod, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="fas fa-check-circle me-2"></i> Place Order
+                            </button>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0">Order Summary</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <tbody>
+                                <tr>
+                                    <td>Items (@Model.Cart.ItemCount):</td>
+                                    <td class="text-end">$@Model.Cart.TotalAmount.ToString("F2")</td>
+                                </tr>
+                                <tr>
+                                    <td>Shipping:</td>
+                                    <td class="text-end">$0.00</td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-bold">Total:</td>
+                                    <td class="text-end fw-bold">$@Model.Cart.TotalAmount.ToString("F2")</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card mb-4">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0">Order Items</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        @foreach (var item in Model.Cart.Items)
+                        {
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <span>@item.ProductName</span>
+                                    <small class="d-block text-muted">Qty: @item.Quantity</small>
+                                </div>
+                                <span>$@item.Subtotal.ToString("F2")</span>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+} 
