@@ -4,41 +4,24 @@
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@ViewBag.Title - My ASP.NET Application</title>
-
-    <!-- Bootstrap CSS (CDN) -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
-
-    <!-- Fallback для Bootstrap -->
     <script>
         if (!window.jQuery) {
             document.write('<link rel="stylesheet" href="~/Content/css/bootstrap.min.css">');
         }
     </script>
-
-    <!-- Подключение бандла стилей -->
     @Styles.Render("~/bundles/styles")
-
-    <!-- Favicon -->
     <link rel="icon" href="~/Content/images/favicon.png" type="image/gif" />
-
-    <!-- Scrollbar Custom CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/malihu-custom-scrollbar-plugin/jquery.mCustomScrollbar.min.css">
-
-    <!-- Font Awesome (CDN) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-
-    <!-- Fancybox (lightbox) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css">
-
-    <!-- Polyfills для старых IE -->
+    <link rel="stylesheet" href="~/Content/css/admin.css">
     <!--[if lt IE 9]>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/respond.js/1.4.2/respond.min.js"></script>
     <![endif]-->
 </head>
 <body class="main-layout">
-
-<!-- header -->
 <header>
     <div class="header">
         <div class="container">
@@ -64,7 +47,56 @@
                                 <li class="nav-item"><a class="nav-link" href="@Url.Action("Room", "Home")">Our Room</a></li>
                                 <li class="nav-item"><a class="nav-link" href="@Url.Action("Gallery", "Home")">Gallery</a></li>
                                 <li class="nav-item"><a class="nav-link" href="@Url.Action("Blog", "Home")">Blog</a></li>
+                                <li class="nav-item"><a class="nav-link" href="@Url.Action("Index", "Shop")">Shop</a></li>
+                                <li class="nav-item"><a class="nav-link" href="@Url.Action("Index", "Review")">Отзывы</a></li>
+                                <li class="nav-item"><a class="nav-link" href="@Url.Action("Index", "Feedback")">Обратная связь</a></li>
                                 <li class="nav-item"><a class="nav-link" href="@Url.Action("Contact", "Home")">Contact Us</a></li>
+                                @if (Request.IsAuthenticated)
+                                {
+                                    <li class="nav-item dropdown">
+                                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                            @User.Identity.Name
+                                        </a>
+                                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                                            <li><a class="dropdown-item" href="@Url.Action("Cart", "Shop")"><i class="fas fa-shopping-cart me-2"></i> My Cart</a></li>
+                                            <li><a class="dropdown-item" href="@Url.Action("MyOrders", "Shop")"><i class="fas fa-box me-2"></i> My Orders</a></li>
+                                            <li><a class="dropdown-item" href="@Url.Action("Index", "Support")"><i class="fas fa-headset me-2"></i> Техподдержка</a></li>
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li><a class="dropdown-item" href="@Url.Action("Logout", "Auth")"><i class="fas fa-sign-out-alt me-2"></i> Logout</a></li>
+                                        </ul>
+                                    </li>
+                                    
+                                    if (User.IsInRole("Admin"))
+                                    {
+                                        <li class="nav-item dropdown">
+                                            <a class="nav-link dropdown-toggle text-warning" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                <i class="fas fa-user-shield"></i> Admin
+                                            </a>
+                                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="adminDropdown">
+                                                <li><a class="dropdown-item" href="@Url.Action("Index", "Admin")"><i class="fas fa-tachometer-alt me-2"></i> Панель управления</a></li>
+                                                <li><hr class="dropdown-divider"></li>
+                                                <li><a class="dropdown-item" href="@Url.Action("Users", "Admin")"><i class="fas fa-users me-2"></i> Управление пользователями</a></li>
+                                                <li><a class="dropdown-item" href="@Url.Action("Index", "Product")"><i class="fas fa-box-open me-2"></i> Управление товарами</a></li>
+                                                <li><a class="dropdown-item" href="@Url.Action("Index", "Order")"><i class="fas fa-shipping-fast me-2"></i> Управление заказами</a></li>
+                                                <li><a class="dropdown-item" href="@Url.Action("Moderation", "Review")"><i class="fas fa-star me-2"></i> Модерация отзывов</a></li>
+                                                <li><a class="dropdown-item" href="@Url.Action("Index", "Support")"><i class="fas fa-headset me-2"></i> Тикеты поддержки</a></li>
+                                                <li><hr class="dropdown-divider"></li>
+                                                <li><h6 class="dropdown-header">Отчеты</h6></li>
+                                                <li><a class="dropdown-item" href="@Url.Action("UsersReport", "Admin")"><i class="fas fa-user-chart me-2"></i> Отчет по пользователям</a></li>
+                                                <li><a class="dropdown-item" href="@Url.Action("ProductsReport", "Admin")"><i class="fas fa-box-open me-2"></i> Отчет по товарам</a></li>
+                                            </ul>
+                                        </li>
+                                    }
+                                }
+                                else
+                                {
+                                    <li class="nav-item">
+                                        <a class="nav-link" href="@Url.Action("Login", "Auth")">Login</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" href="@Url.Action("Register", "Auth")">Register</a>
+                                    </li>
+                                }
                             </ul>
                         </div>
                     </nav>
@@ -73,13 +105,9 @@
         </div>
     </div>
 </header>
-<!-- end header -->
-
 <main>
     @RenderBody()
 </main>
-
-<!-- footer -->
 <footer>
     <div class="footer">
         <div class="container">
@@ -99,6 +127,9 @@
                         <li><a href="@Url.Action("About", "Home")">About</a></li>
                         <li><a href="@Url.Action("Room", "Home")">Our Room</a></li>
                         <li><a href="@Url.Action("Gallery", "Home")">Gallery</a></li>
+                        <li><a href="@Url.Action("Index", "Shop")">Shop</a></li>
+                        <li><a href="@Url.Action("Index", "Review")">Отзывы</a></li>
+                        <li><a href="@Url.Action("Index", "Feedback")">Обратная связь</a></li>
                         <li><a href="@Url.Action("Blog", "Home")">Blog</a></li>
                         <li><a href="@Url.Action("Contact", "Home")">Contact Us</a></li>
                     </ul>
@@ -118,31 +149,12 @@
                 </div>
             </div>
         </div>
-        <div class="copyright">
-            <div class="container">
-                <div class="row">
-                    <div class="col-md-10 offset-md-1">
-                        <p>© @DateTime.Now.Year All Rights Reserved.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
     </div>
 </footer>
-<!-- end footer -->
-
-<!-- jQuery (CDN) -->
 <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
-
-<!-- Bootstrap Bundle (CDN) -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-
-<!-- Scrollbar Custom -->
 <script src="https://cdn.jsdelivr.net/npm/malihu-custom-scrollbar-plugin/jquery.mCustomScrollbar.concat.min.js"></script>
-
-<!-- Подключение бандла скриптов -->
 @Scripts.Render("~/bundles/scripts")
-
 @RenderSection("scripts", required: false)
 </body>
 </html>
