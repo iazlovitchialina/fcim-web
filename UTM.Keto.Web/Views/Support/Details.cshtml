@@ -1,0 +1,162 @@
+﻿@model UTM.Keto.Web.Models.TicketViewModel
+
+@{
+    ViewBag.Title = "Детали запроса";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container my-5">
+    <div class="row">
+        <div class="col-md-12 mb-4">
+            <a href="@Url.Action("Index")" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-left me-2"></i> Вернуться к списку
+            </a>
+            
+            @if (Model.CurrentStatus != UTM.Keto.Domain.TicketStatus.Closed)
+            {
+                <a href="@Url.Action("Reply", new { id = Model.Id })" class="btn btn-success ms-2">
+                    <i class="fas fa-reply me-2"></i> Ответить
+                </a>
+                
+                <button type="button" class="btn btn-danger ms-2" data-bs-toggle="modal" data-bs-target="#closeTicketModal">
+                    <i class="fas fa-times-circle me-2"></i> Закрыть тикет
+                </button>
+            }
+        </div>
+    </div>
+    
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">
+            <i class="fas fa-check-circle me-2"></i> @TempData["SuccessMessage"]
+        </div>
+    }
+    
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger">
+            <i class="fas fa-exclamation-circle me-2"></i> @TempData["ErrorMessage"]
+        </div>
+    }
+    
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Запрос #@Model.TicketNumber</h5>
+            <span class="badge @(Model.CurrentStatus == UTM.Keto.Domain.TicketStatus.Open ? "bg-success" : (Model.CurrentStatus == UTM.Keto.Domain.TicketStatus.Closed ? "bg-secondary" : "bg-primary"))">
+                @switch (Model.CurrentStatus)
+                {
+                    case UTM.Keto.Domain.TicketStatus.Open:
+                        <span>Открыт</span>
+                        break;
+                    case UTM.Keto.Domain.TicketStatus.InProgress:
+                        <span>В обработке</span>
+                        break;
+                    case UTM.Keto.Domain.TicketStatus.Closed:
+                        <span>Закрыт</span>
+                        break;
+                    default:
+                        <span>@Model.Status</span>
+                        break;
+                }
+            </span>
+        </div>
+        <div class="card-body">
+            <div class="ticket-details mb-4">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Тема:</strong> @Model.Subject</p>
+                        <p><strong>Пользователь:</strong> @Model.UserName</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Дата создания:</strong> @Model.CreatedDate.ToString("dd.MM.yyyy HH:mm")</p>
+                        @if (Model.ClosedDate.HasValue)
+                        {
+                            <p><strong>Дата закрытия:</strong> @Model.ClosedDate.Value.ToString("dd.MM.yyyy HH:mm")</p>
+                        }
+                    </div>
+                </div>
+            </div>
+            
+            <hr />
+            
+            <h5 class="mb-3">Переписка</h5>
+            
+            <div class="ticket-messages">
+                <div class="message @(false ? "message-admin" : "message-user")">
+                    <div class="message-header">
+                        <strong>@Model.UserName</strong>
+                        <span class="text-muted ms-2">@Model.CreatedDate.ToString("dd.MM.yyyy HH:mm")</span>
+                    </div>
+                    <div class="message-body">
+                        @Model.InitialMessage
+                    </div>
+                </div>
+                
+                @foreach (var message in Model.Messages.Skip(1)) // Skip the first message (initial message)
+                {
+                    <div class="message @(message.IsFromAdmin ? "message-admin" : "message-user")">
+                        <div class="message-header">
+                            <strong>@message.SenderName</strong>
+                            <span class="text-muted ms-2">@message.SentDate.ToString("dd.MM.yyyy HH:mm")</span>
+                        </div>
+                        <div class="message-body">
+                            @message.Message
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно для закрытия тикета -->
+<div class="modal fade" id="closeTicketModal" tabindex="-1" aria-labelledby="closeTicketModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="closeTicketModalLabel">Подтверждение закрытия тикета</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Вы уверены, что хотите закрыть этот тикет?</p>
+                <p>После закрытия тикета вы больше не сможете добавлять сообщения.</p>
+            </div>
+            <div class="modal-footer">
+                @using (Html.BeginForm("Close", "Support", FormMethod.Post))
+                {
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" value="@Model.Id" />
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="submit" class="btn btn-danger">Закрыть тикет</button>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .ticket-messages {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+    .message {
+        padding: 1rem;
+        border-radius: 0.5rem;
+        max-width: 80%;
+    }
+    .message-user {
+        background-color: #f0f7ff;
+        align-self: flex-start;
+    }
+    .message-admin {
+        background-color: #e9ecef;
+        align-self: flex-end;
+    }
+    .message-header {
+        margin-bottom: 0.5rem;
+    }
+    .message-body {
+        white-space: pre-line;
+    }
+</style> 

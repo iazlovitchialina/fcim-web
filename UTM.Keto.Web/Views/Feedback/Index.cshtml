@@ -1,0 +1,217 @@
+﻿@{
+    ViewBag.Title = "Обратная связь";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container my-5">
+    <div class="row">
+        <div class="col-md-12 text-center mb-5">
+            <h1 class="display-4 fw-bold text-primary">Нам важно ваше мнение!</h1>
+            <p class="lead">Мы постоянно стремимся улучшать качество наших услуг и будем благодарны за ваш отзыв</p>
+        </div>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">
+            <i class="fas fa-check-circle me-2"></i> @TempData["SuccessMessage"]
+        </div>
+    }
+    
+    @if (TempData["TicketErrorMessage"] != null)
+    {
+        <div class="alert alert-danger">
+            <i class="fas fa-exclamation-circle me-2"></i> @TempData["TicketErrorMessage"]
+        </div>
+    }
+
+    <div class="row">
+        <!-- Секция отзывов -->
+        <div class="col-lg-6 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body p-4">
+                    <div class="text-center mb-4">
+                        <div class="rounded-circle bg-primary text-white d-inline-flex p-3 mb-3">
+                            <i class="fas fa-star fa-2x m-2"></i>
+                        </div>
+                        <h3 class="fw-bold">Оставьте отзыв</h3>
+                        <p class="text-muted">Поделитесь своими впечатлениями о нашем сервисе</p>
+                    </div>
+
+                    @using (Html.BeginForm("SubmitReview", "Feedback", FormMethod.Post))
+                    {
+                        @Html.AntiForgeryToken()
+                        
+                        <div class="mb-3">
+                            <label for="Title" class="form-label">Заголовок</label>
+                            <input type="text" class="form-control" id="Title" name="Title" required placeholder="Озаглавьте ваш отзыв">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="Content" class="form-label">Текст отзыва</label>
+                            <textarea class="form-control" id="Content" name="Content" rows="4" required placeholder="Опишите ваши впечатления..."></textarea>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="form-label d-block">Оценка</label>
+                            <div class="rating-container">
+                                <div class="rating">
+                                    @for (int i = 5; i >= 1; i--)
+                                    {
+                                        <input type="radio" id="star@(i)" name="Rating" value="@i" @(i == 5 ? "checked" : "") />
+                                        <label for="star@(i)"><i class="fas fa-star"></i></label>
+                                    }
+                                </div>
+                                <span class="ms-3 rating-text">Выберите оценку от 1 до 5</span>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-paper-plane me-2"></i> Отправить отзыв
+                            </button>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Секция техподдержки -->
+        <div class="col-lg-6 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body p-4">
+                    <div class="text-center mb-4">
+                        <div class="rounded-circle bg-danger text-white d-inline-flex p-3 mb-3">
+                            <i class="fas fa-exclamation-triangle fa-2x m-2"></i>
+                        </div>
+                        <h3 class="fw-bold">У вас что-то не работает?</h3>
+                        <p class="text-muted">Сообщите нам о проблеме, и мы оперативно вам поможем</p>
+                    </div>
+
+                    @using (Html.BeginForm("SubmitTicket", "Feedback", FormMethod.Post))
+                    {
+                        @Html.AntiForgeryToken()
+                        
+                        <div class="mb-3">
+                            <label for="Subject" class="form-label">Тема обращения</label>
+                            <input type="text" class="form-control" id="Subject" name="Subject" required placeholder="Укажите тему вашего обращения">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="Message" class="form-label">Описание проблемы</label>
+                            <textarea class="form-control" id="Message" name="Message" rows="4" required placeholder="Опишите проблему как можно подробнее..."></textarea>
+                        </div>
+                        
+                        <div class="alert alert-info mb-4">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>Примечание:</strong> 
+                            @if (User.Identity.IsAuthenticated)
+                            {
+                                <span>Наша команда ответит вам в течение 24 часов.</span>
+                            }
+                            else
+                            {
+                                <span>Для отправки запроса в техподдержку необходимо <a href="@Url.Action("Login", "Auth")">авторизоваться</a>.</span>
+                            }
+                        </div>
+                        
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-danger btn-lg" @(User.Identity.IsAuthenticated ? "" : "disabled")>
+                                <i class="fas fa-headset me-2"></i> Отправить запрос
+                            </button>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Контактная информация -->
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <div class="row">
+                        <div class="col-md-4 text-center mb-3 mb-md-0">
+                            <div class="rounded-circle bg-info text-white d-inline-flex p-2 mb-2">
+                                <i class="fas fa-phone fa-lg m-2"></i>
+                            </div>
+                            <h5>Телефон</h5>
+                            <p class="mb-0">+7 (800) 123-45-67</p>
+                            <p class="text-muted small">Ежедневно с 9:00 до 21:00</p>
+                        </div>
+                        <div class="col-md-4 text-center mb-3 mb-md-0">
+                            <div class="rounded-circle bg-info text-white d-inline-flex p-2 mb-2">
+                                <i class="fas fa-envelope fa-lg m-2"></i>
+                            </div>
+                            <h5>Email</h5>
+                            <p class="mb-0">support@keto.com</p>
+                            <p class="text-muted small">Ответим в течение 24 часов</p>
+                        </div>
+                        <div class="col-md-4 text-center">
+                            <div class="rounded-circle bg-info text-white d-inline-flex p-2 mb-2">
+                                <i class="fas fa-comments fa-lg m-2"></i>
+                            </div>
+                            <h5>Чат в мессенджерах</h5>
+                            <div class="mt-2">
+                                <a href="#" class="btn btn-outline-primary btn-sm mx-1">
+                                    <i class="fab fa-telegram"></i>
+                                </a>
+                                <a href="#" class="btn btn-outline-success btn-sm mx-1">
+                                    <i class="fab fa-whatsapp"></i>
+                                </a>
+                                <a href="#" class="btn btn-outline-info btn-sm mx-1">
+                                    <i class="fab fa-viber"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .rating {
+        display: inline-flex;
+        flex-direction: row-reverse;
+    }
+    
+    .rating input {
+        display: none;
+    }
+    
+    .rating label {
+        cursor: pointer;
+        font-size: 1.5rem;
+        padding: 0 0.1em;
+        color: #ddd;
+    }
+    
+    .rating input:checked ~ label,
+    .rating:not(:checked) > label:hover,
+    .rating:not(:checked) > label:hover ~ label {
+        color: #FFD700;
+    }
+    
+    .rating-container {
+        display: flex;
+        align-items: center;
+    }
+    
+    .rating-text {
+        color: #6c757d;
+    }
+</style>
+
+@section Scripts {
+    <script>
+        $(function() {
+            $('.rating label').on('click', function() {
+                $(this).parent().find('label').css('color', '#ddd');
+                $(this).css('color', '#FFD700').prevAll('label').css('color', '#FFD700');
+            });
+        });
+    </script>
+} 

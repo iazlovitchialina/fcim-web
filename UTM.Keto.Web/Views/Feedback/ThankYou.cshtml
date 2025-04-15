@@ -1,0 +1,63 @@
+﻿@{
+    ViewBag.Title = "Спасибо за обратную связь";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container my-5">
+    <div class="row">
+        <div class="col-md-8 mx-auto text-center">
+            <div class="card border-0 shadow-lg p-5">
+                <div class="check-icon-container mb-4">
+                    <span class="check-icon">
+                        <i class="fas fa-check-circle fa-5x text-success"></i>
+                    </span>
+                </div>
+                
+                <h1 class="display-4 fw-bold mb-4">Спасибо!</h1>
+                
+                @if (TempData["SuccessMessage"] != null)
+                {
+                    <div class="alert alert-success mb-4">
+                        <i class="fas fa-check-circle me-2"></i> @TempData["SuccessMessage"]
+                    </div>
+                }
+                else
+                {
+                    <p class="lead mb-4">Ваше сообщение успешно отправлено. Мы ценим ваше мнение!</p>
+                }
+                
+                <div class="my-4">
+                    <p>Хотите вернуться на главную страницу или продолжить покупки?</p>
+                    <div class="d-flex justify-content-center gap-3 mt-4">
+                        <a href="@Url.Action("Index", "Home")" class="btn btn-outline-primary btn-lg">
+                            <i class="fas fa-home me-2"></i> На главную
+                        </a>
+                        <a href="@Url.Action("Index", "Shop")" class="btn btn-primary btn-lg">
+                            <i class="fas fa-shopping-bag me-2"></i> В магазин
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .check-icon-container {
+        display: flex;
+        justify-content: center;
+        animation: bounce 1s ease-in-out;
+    }
+    
+    @@keyframes bounce {
+        0%, 20%, 50%, 80%, 100% {
+            transform: translateY(0);
+        }
+        40% {
+            transform: translateY(-30px);
+        }
+        60% {
+            transform: translateY(-15px);
+        }
+    }
+</style> 
