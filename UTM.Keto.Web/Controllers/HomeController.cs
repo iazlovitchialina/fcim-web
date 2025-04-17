@@ -47,12 +47,18 @@ namespace UTM.Keto.Web.Controllers
             ViewBag.Message = "Your contact page.";
             return View();
         }
-        
+
         [AllowAnonymous]
         public ActionResult Error()
         {
             ViewBag.Title = "Error";
             return View("Error");
+        }
+
+        public ActionResult AccessDenied()
+        {
+            Response.StatusCode = 403;
+            return View();
         }
     }
 }
