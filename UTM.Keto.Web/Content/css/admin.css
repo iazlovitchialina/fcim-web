@@ -1,0 +1,389 @@
+/* Admin Dashboard Styles */
+.bg-gradient-primary {
+    background: linear-gradient(135deg, #2980b9 0%, #3498db 100%);
+}
+
+.bg-gradient-success {
+    background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+}
+
+.bg-gradient-danger {
+    background: linear-gradient(135deg, #c0392b 0%, #e74c3c 100%);
+}
+
+.bg-gradient-warning {
+    background: linear-gradient(135deg, #f39c12 0%, #f1c40f 100%);
+}
+
+.bg-gradient-info {
+    background: linear-gradient(135deg, #2980b9 0%, #3498db 100%);
+}
+
+.bg-gradient-dark {
+    background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+}
+
+/* Custom card styling */
+.card {
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Avatar styling */
+.avatar {
+    transition: all 0.3s ease;
+}
+
+.avatar:hover {
+    transform: scale(1.05);
+}
+
+/* Table styling */
+.table-hover tbody tr:hover {
+    background-color: rgba(52, 152, 219, 0.05);
+}
+
+/* Action buttons styling */
+.btn-group .btn {
+    margin-right: 5px;
+}
+
+.btn-group .btn:last-child {
+    margin-right: 0;
+}
+
+/* Card header & footer styling */
+.card-header, .card-footer {
+    padding: 1rem 1.5rem;
+}
+
+/* Pagination styling */
+.pagination .page-link {
+    border-radius: 0.25rem;
+    margin: 0 2px;
+}
+
+/* Print styles */
+@media print {
+    .no-print {
+        display: none !important;
+    }
+    
+    .card {
+        box-shadow: none !important;
+        border: 1px solid #ddd;
+    }
+    
+    .card-header {
+        background: #f8f9fa !important;
+        color: #000 !important;
+    }
+}
+
+/* Animation for alerts */
+.alert {
+    animation: fadeIn 0.5s;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Стили для админ-панели */
+:root {
+    --primary-color: #4e73df;
+    --success-color: #1cc88a;
+    --info-color: #36b9cc;
+    --warning-color: #f6c23e;
+    --danger-color: #e74a3b;
+    --dark-color: #5a5c69;
+    --secondary-color: #858796;
+    --chart-color-0: #4e73df;
+    --chart-color-1: #1cc88a;
+    --chart-color-2: #36b9cc;
+    --chart-color-3: #f6c23e;
+    --chart-color-4: #e74a3b;
+}
+
+/* Карточки со статусом (аналог SB Admin 2) */
+.card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    word-wrap: break-word;
+    background-color: #fff;
+    background-clip: border-box;
+    border: 1px solid #e3e6f0;
+    border-radius: 0.35rem;
+}
+
+.card-header {
+    padding: 0.75rem 1.25rem;
+    margin-bottom: 0;
+    background-color: #f8f9fc;
+    border-bottom: 1px solid #e3e6f0;
+}
+
+.border-left-primary {
+    border-left: 0.25rem solid var(--primary-color) !important;
+}
+
+.border-left-success {
+    border-left: 0.25rem solid var(--success-color) !important;
+}
+
+.border-left-info {
+    border-left: 0.25rem solid var(--info-color) !important;
+}
+
+.border-left-warning {
+    border-left: 0.25rem solid var(--warning-color) !important;
+}
+
+.border-left-danger {
+    border-left: 0.25rem solid var(--danger-color) !important;
+}
+
+.text-gray-300 {
+    color: #dddfeb !important;
+}
+
+.text-gray-800 {
+    color: #5a5c69 !important;
+}
+
+.font-weight-bold {
+    font-weight: 700 !important;
+}
+
+.text-xs {
+    font-size: .7rem;
+}
+
+.text-uppercase {
+    text-transform: uppercase !important;
+}
+
+/* Градиенты для заголовков */
+.bg-gradient-primary {
+    background-color: var(--primary-color);
+    background-image: linear-gradient(180deg, var(--primary-color) 10%, #224abe 100%);
+    background-size: cover;
+}
+
+.bg-gradient-success {
+    background-color: var(--success-color);
+    background-image: linear-gradient(180deg, var(--success-color) 10%, #13855c 100%);
+    background-size: cover;
+}
+
+.bg-gradient-info {
+    background-color: var(--info-color);
+    background-image: linear-gradient(180deg, var(--info-color) 10%, #2a96a5 100%);
+    background-size: cover;
+}
+
+.bg-gradient-warning {
+    background-color: var(--warning-color);
+    background-image: linear-gradient(180deg, var(--warning-color) 10%, #dda20a 100%);
+    background-size: cover;
+}
+
+.bg-gradient-danger {
+    background-color: var(--danger-color);
+    background-image: linear-gradient(180deg, var(--danger-color) 10%, #be2617 100%);
+    background-size: cover;
+}
+
+/* Стили для графиков */
+.chart-area {
+    position: relative;
+    height: 20rem;
+    width: 100%;
+}
+
+.chart-pie {
+    position: relative;
+    height: 15rem;
+    width: 100%;
+}
+
+/* Кастомные стили для таблиц */
+.table-responsive {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.table-bordered {
+    border: 1px solid #e3e6f0;
+}
+
+.table-bordered th,
+.table-bordered td {
+    border: 1px solid #e3e6f0;
+}
+
+.table-striped tbody tr:nth-of-type(odd) {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.table-hover tbody tr:hover {
+    background-color: rgba(0, 0, 0, 0.075);
+}
+
+/* Кнопка загрузки и фильтры */
+.date-filters {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.date-filters .form-control {
+    width: auto;
+    margin-right: 0.5rem;
+}
+
+/* Страница отчетов */
+.report-header {
+    background-color: #f8f9fc;
+    border-radius: 0.35rem;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid #e3e6f0;
+}
+
+.report-header h2 {
+    margin-bottom: 0.5rem;
+    font-weight: 700;
+    color: #4e73df;
+}
+
+.report-summary {
+    display: flex;
+    flex-wrap: wrap;
+    margin-top: 1rem;
+}
+
+.summary-item {
+    margin-right: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+.summary-item .label {
+    font-size: 0.8rem;
+    color: #858796;
+    text-transform: uppercase;
+}
+
+.summary-item .value {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #5a5c69;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .date-filters {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .date-filters .form-control {
+        margin-right: 0;
+        margin-bottom: 0.5rem;
+        width: 100%;
+    }
+    
+    .chart-area {
+        height: 15rem;
+    }
+    
+    .chart-pie {
+        height: 15rem;
+    }
+}
+
+/* Кастомные стили для выпадающих меню */
+.dropdown-item {
+    padding: 0.5rem 1rem;
+}
+
+.dropdown-item:active {
+    background-color: var(--primary-color);
+}
+
+/* Стили для карт на дашборде */
+.card-dashboard {
+    transition: all 0.3s ease;
+}
+
+.card-dashboard:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Анимация для иконок */
+.animated-icon {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* Progress bars */
+.progress {
+    height: 0.5rem;
+    margin-bottom: 0.5rem;
+    overflow: hidden;
+    background-color: #eaecf4;
+    border-radius: 0.35rem;
+}
+
+.progress-sm {
+    height: 0.25rem;
+}
+
+.progress-bar {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    overflow: hidden;
+    color: #fff;
+    text-align: center;
+    white-space: nowrap;
+    background-color: var(--primary-color);
+    transition: width 0.6s ease;
+}
+
+.progress-bar-success {
+    background-color: var(--success-color);
+}
+
+.progress-bar-info {
+    background-color: var(--info-color);
+}
+
+.progress-bar-warning {
+    background-color: var(--warning-color);
+}
+
+.progress-bar-danger {
+    background-color: var(--danger-color);
+} 
