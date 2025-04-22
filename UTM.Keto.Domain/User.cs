@@ -23,6 +23,9 @@ namespace UTM.Keto.Domain
         
         [Required]
         public UserRole Role { get; set; }
+
+        [StringLength(100)]
+        public string PasswordHash { get; set; }
         
         public virtual ICollection<Booking> Bookings { get; set; }
         
