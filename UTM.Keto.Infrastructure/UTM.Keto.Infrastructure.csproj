@@ -47,9 +47,17 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ApplicationDbContext.cs" />
-    <Compile Include="Migrations\202503160853273_InitialCreate.cs" />
-    <Compile Include="Migrations\202503160853273_InitialCreate.Designer.cs">
-      <DependentUpon>202503160853273_InitialCreate.cs</DependentUpon>
+    <Compile Include="Migrations\202505130505110_db.cs" />
+    <Compile Include="Migrations\202505130505110_db.Designer.cs">
+      <DependentUpon>202505130505110_db.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202505130519193_db2.cs" />
+    <Compile Include="Migrations\202505130519193_db2.Designer.cs">
+      <DependentUpon>202505130519193_db2.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202505130534171_db22.cs" />
+    <Compile Include="Migrations\202505130534171_db22.Designer.cs">
+      <DependentUpon>202505130534171_db22.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -71,8 +79,14 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Migrations\202503160853273_InitialCreate.resx">
-      <DependentUpon>202503160853273_InitialCreate.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\202505130505110_db.resx">
+      <DependentUpon>202505130505110_db.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202505130519193_db2.resx">
+      <DependentUpon>202505130519193_db2.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202505130534171_db22.resx">
+      <DependentUpon>202505130534171_db22.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
