@@ -2,6 +2,12 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UTM.Keto.Web", "UTM.Keto.Web\UTM.Keto.Web.csproj", "{2A63D508-153B-4A66-A6E9-30C23C7508B1}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UTM.Keto.Domain", "UTM.Keto.Domain\UTM.Keto.Domain.csproj", "{939F7802-85E7-4F9C-A49E-BE576BAE265B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UTM.Keto.Infrastructure", "UTM.Keto.Infrastructure\UTM.Keto.Infrastructure.csproj", "{851B0C93-31E3-4F61-88AC-20D086F81C3C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UTM.Keto.Application", "UTM.Keto.Application\UTM.Keto.Application.csproj", "{A0C1266F-C3D2-44B6-837D-4B7EEEB449E2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -12,5 +18,17 @@ Global
 		{2A63D508-153B-4A66-A6E9-30C23C7508B1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2A63D508-153B-4A66-A6E9-30C23C7508B1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2A63D508-153B-4A66-A6E9-30C23C7508B1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{939F7802-85E7-4F9C-A49E-BE576BAE265B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{939F7802-85E7-4F9C-A49E-BE576BAE265B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{939F7802-85E7-4F9C-A49E-BE576BAE265B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{939F7802-85E7-4F9C-A49E-BE576BAE265B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{851B0C93-31E3-4F61-88AC-20D086F81C3C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{851B0C93-31E3-4F61-88AC-20D086F81C3C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{851B0C93-31E3-4F61-88AC-20D086F81C3C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{851B0C93-31E3-4F61-88AC-20D086F81C3C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A0C1266F-C3D2-44B6-837D-4B7EEEB449E2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A0C1266F-C3D2-44B6-837D-4B7EEEB449E2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A0C1266F-C3D2-44B6-837D-4B7EEEB449E2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A0C1266F-C3D2-44B6-837D-4B7EEEB449E2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

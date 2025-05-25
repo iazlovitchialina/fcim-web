@@ -2,8 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web.Mvc;
+using UTM.Keto.Application;
+using UTM.Keto.Application.Interfaces;
 using UTM.Keto.Domain;
-using UTM.Keto.Infrastructure;
 using UTM.Keto.Web.Filters;
 using UTM.Keto.Web.Models;
 
@@ -12,164 +13,160 @@ namespace UTM.Keto.Web.Controllers
     [CustomAuthorize(Roles = "Admin")]
     public class OrderController : Controller
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IOrderBL _orderBL;
+        private readonly ICartBL _cartBL;
 
         public OrderController()
         {
-            _context = new ApplicationDbContext();
+            var factory = BusinessLogicFactory.Instance;
+            _orderBL = factory.GetOrderBL();
+            _cartBL = factory.GetCartBL();
         }
 
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                _context.Dispose();
-            }
-            base.Dispose(disposing);
-        }
-
-        // GET: Order
         public ActionResult Index()
         {
-            var orders = _context.Orders
-                .Include("User")
-                .OrderByDescending(o => o.OrderDate)
-                .ToList();
+            int userId = GetCurrentUserId();
+            var orders = _orderBL.GetOrdersByUserId(userId);
             
-            var viewModels = orders.Select(o => new OrderViewModel
+            // Преобразуем Order в OrderViewModel
+            var orderViewModels = orders.Select(o => new OrderViewModel
             {
                 Id = o.Id,
                 OrderNumber = o.OrderNumber,
-                UserName = o.User.FullName,
+                UserName = o.User?.FullName ?? "Неизвестно",
                 OrderDate = o.OrderDate,
                 TotalAmount = o.TotalAmount,
                 Status = o.Status.ToString(),
-                CurrentStatus = o.Status
+                CurrentStatus = o.Status,
+                ShippingAddress = o.ShippingAddress,
+                ShippingMethod = o.ShippingMethod
             }).ToList();
             
-            return View(viewModels);
+            return View(orderViewModels);
         }
 
-        // GET: Order/Details/5
-        public ActionResult Details(Guid id)
+        public ActionResult Details(int id)
         {
-            var order = _context.Orders
-                .Include("OrderItems.Product")
-                .Include("User")
-                .FirstOrDefault(o => o.Id == id);
-            
+            var order = _orderBL.GetOrderById(id);
             if (order == null)
             {
                 return HttpNotFound();
             }
-            
-            var viewModel = new OrderViewModel
+
+            // Преобразуем Order в OrderViewModel
+            var orderViewModel = new OrderViewModel
             {
                 Id = order.Id,
                 OrderNumber = order.OrderNumber,
-                UserName = order.User.FullName,
+                UserName = order.User?.FullName ?? "Неизвестно",
                 OrderDate = order.OrderDate,
                 TotalAmount = order.TotalAmount,
                 Status = order.Status.ToString(),
                 CurrentStatus = order.Status,
                 ShippingAddress = order.ShippingAddress,
                 ShippingMethod = order.ShippingMethod,
-                Items = order.OrderItems.Select(oi => new OrderItemViewModel
+                Items = order.OrderItems?.Select(item => new OrderItemViewModel
                 {
-                    Id = oi.Id,
-                    ProductName = oi.Product.Name,
-                    ProductImagePath = oi.Product.ImagePath,
-                    UnitPrice = oi.UnitPrice,
-                    Quantity = oi.Quantity,
-                    Subtotal = oi.Subtotal
-                }).ToList()
+                    Id = item.Id,
+                    ProductName = item.Product?.Name ?? "Неизвестно",
+                    ProductImagePath = item.Product?.ImagePath,
+                    UnitPrice = item.UnitPrice,
+                    Quantity = item.Quantity,
+                    Subtotal = item.UnitPrice * item.Quantity
+                }).ToList() ?? new List<OrderItemViewModel>()
             };
-            
-            return View(viewModel);
+
+            // Проверка, что заказ принадлежит текущему пользователю или пользователь администратор
+            if (order.UserId.GetHashCode() != GetCurrentUserId() && !User.IsInRole("Admin"))
+            {
+                return new HttpUnauthorizedResult();
+            }
+
+            return View(orderViewModel);
         }
 
-        // GET: Order/UpdateStatus/5
-        public ActionResult UpdateStatus(Guid id)
+        public ActionResult Checkout()
         {
-            var order = _context.Orders.Find(id);
+            int userId = GetCurrentUserId();
+            var cart = _cartBL.GetCart(userId);
+            
+            if (cart.Items.Count == 0)
+            {
+                return RedirectToAction("Index", "Shop");
+            }
+            
+            return View(cart);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult PlaceOrder(string shippingAddress)
+        {
+            int userId = GetCurrentUserId();
+            
+            var order = _orderBL.CreateOrder(userId, shippingAddress);
+            if (order == null)
+            {
+                return RedirectToAction("Index", "Shop");
+            }
+            
+            return RedirectToAction("OrderComplete", new { id = order.Id.GetHashCode() });
+        }
+
+        public ActionResult OrderComplete(int id)
+        {
+            var order = _orderBL.GetOrderById(id);
             if (order == null)
             {
                 return HttpNotFound();
             }
             
-            var model = new OrderStatusViewModel
+            // Преобразуем Order в OrderViewModel
+            var orderViewModel = new OrderViewModel
             {
-                OrderId = order.Id,
+                Id = order.Id,
+                OrderNumber = order.OrderNumber,
+                UserName = order.User?.FullName ?? "Неизвестно",
+                OrderDate = order.OrderDate,
+                TotalAmount = order.TotalAmount,
+                Status = order.Status.ToString(),
                 CurrentStatus = order.Status,
-                NewStatus = order.Status,
-                AvailableStatuses = GetAvailableStatuses(order.Status)
+                ShippingAddress = order.ShippingAddress,
+                ShippingMethod = order.ShippingMethod
             };
             
-            return View(model);
+            // Проверка, что заказ принадлежит текущему пользователю
+            if (order.UserId.GetHashCode() != GetCurrentUserId() && !User.IsInRole("Admin"))
+            {
+                return new HttpUnauthorizedResult();
+            }
+            
+            return View(orderViewModel);
         }
 
-        // POST: Order/UpdateStatus
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult UpdateStatus(OrderStatusViewModel model)
+        [Authorize(Roles = "Admin")]
+        public ActionResult UpdateStatus(int id, string status)
         {
-            if (ModelState.IsValid)
+            _orderBL.UpdateOrderStatus(id, status);
+            return RedirectToAction("Details", new { id });
+        }
+
+        private int GetCurrentUserId()
+        {
+            var identity = User.Identity as System.Security.Claims.ClaimsIdentity;
+            if (identity != null)
             {
-                var order = _context.Orders.Find(model.OrderId);
-                if (order == null)
+                var userIdClaim = identity.Claims.FirstOrDefault(c => c.Type == "UserId");
+                if (userIdClaim != null && int.TryParse(userIdClaim.Value, out int userId))
                 {
-                    return HttpNotFound();
+                    return userId;
                 }
-                
-                // Validate status change
-                if (!IsValidStatusTransition(order.Status, model.NewStatus))
-                {
-                    ModelState.AddModelError("", "Invalid status transition. You cannot skip status steps.");
-                    model.AvailableStatuses = GetAvailableStatuses(order.Status);
-                    return View(model);
-                }
-                
-                order.Status = model.NewStatus;
-                _context.SaveChanges();
-                
-                TempData["SuccessMessage"] = $"Order status updated to {model.NewStatus}.";
-                return RedirectToAction("Details", new { id = model.OrderId });
             }
             
-            // If we got this far, something failed, redisplay form
-            var order2 = _context.Orders.Find(model.OrderId);
-            if (order2 == null)
-            {
-                return HttpNotFound();
-            }
-            
-            model.AvailableStatuses = GetAvailableStatuses(order2.Status);
-            return View(model);
-        }
-
-        private bool IsValidStatusTransition(OrderStatus currentStatus, OrderStatus newStatus)
-        {
-            // Can't go backwards
-            if (newStatus < currentStatus)
-            {
-                return false;
-            }
-            
-            // Can't skip steps
-            return (int)newStatus <= (int)currentStatus + 1;
-        }
-
-        private List<OrderStatus> GetAvailableStatuses(OrderStatus currentStatus)
-        {
-            var statuses = new List<OrderStatus> { currentStatus };
-            
-            // Add next status if not at the end
-            if (currentStatus != OrderStatus.Delivered)
-            {
-                statuses.Add(currentStatus + 1);
-            }
-            
-            return statuses;
+            // Альтернативный способ получения ID из форм-аутентификации
+            var ticket = System.Web.Security.FormsAuthentication.Decrypt(Request.Cookies[System.Web.Security.FormsAuthentication.FormsCookieName].Value);
+            var userData = ticket.UserData.Split('|');
+            return int.Parse(userData[0]);
         }
     }
 } 
