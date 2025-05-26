@@ -16,5 +16,8 @@ namespace UTM.Keto.Application.Interfaces
         List<User> GetAllUsers();
         bool IsUserInRole(string email, string role);
         string[] GetUserRoles(string email);
+        void UpdateUser(User user);
+        void DeleteUser(Guid userId);
+        void DeleteUser(int userId);
     }
 } 

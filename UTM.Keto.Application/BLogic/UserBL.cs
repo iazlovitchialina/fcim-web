@@ -180,6 +180,40 @@ namespace UTM.Keto.Application.BLogic
             return user != null ? new[] { user.Role.ToString() } : new string[0];
         }
 
+        public void UpdateUser(User user)
+        {
+            var existingUser = _db.Users.AsQueryable().FirstOrDefault(u => u.Id == user.Id);
+            if (existingUser != null)
+            {
+                existingUser.FullName = user.FullName;
+                existingUser.Email = user.Email;
+                existingUser.PhoneNumber = user.PhoneNumber;
+                existingUser.Role = user.Role;
+                
+                _db.SaveChanges();
+            }
+        }
+
+        public void DeleteUser(Guid userId)
+        {
+            var user = _db.Users.AsQueryable().FirstOrDefault(u => u.Id == userId);
+            if (user != null)
+            {
+                _db.Users.Remove(user);
+                _db.SaveChanges();
+            }
+        }
+
+        public void DeleteUser(int userId)
+        {
+            var user = _db.Users.AsQueryable().FirstOrDefault(u => u.Id.GetHashCode() == userId);
+            if (user != null)
+            {
+                _db.Users.Remove(user);
+                _db.SaveChanges();
+            }
+        }
+
         private string HashPassword(string password)
         {
             using (var sha256 = SHA256.Create())

@@ -15,7 +15,7 @@ namespace UTM.Keto.Web.Models
         public DateTime CreatedDate { get; set; }
         public DateTime? ClosedDate { get; set; }
         public string Status { get; set; }
-        public TicketStatus CurrentStatus { get; set; }
+        public string CurrentStatus { get; set; }
         public List<TicketMessageViewModel> Messages { get; set; }
         
         public TicketViewModel()

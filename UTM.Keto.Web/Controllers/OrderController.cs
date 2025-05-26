@@ -37,7 +37,7 @@ namespace UTM.Keto.Web.Controllers
                 OrderDate = o.OrderDate,
                 TotalAmount = o.TotalAmount,
                 Status = o.Status.ToString(),
-                CurrentStatus = o.Status,
+                CurrentStatus = o.Status.ToString(),
                 ShippingAddress = o.ShippingAddress,
                 ShippingMethod = o.ShippingMethod
             }).ToList();
@@ -62,7 +62,7 @@ namespace UTM.Keto.Web.Controllers
                 OrderDate = order.OrderDate,
                 TotalAmount = order.TotalAmount,
                 Status = order.Status.ToString(),
-                CurrentStatus = order.Status,
+                CurrentStatus = order.Status.ToString(),
                 ShippingAddress = order.ShippingAddress,
                 ShippingMethod = order.ShippingMethod,
                 Items = order.OrderItems?.Select(item => new OrderItemViewModel
@@ -130,7 +130,7 @@ namespace UTM.Keto.Web.Controllers
                 OrderDate = order.OrderDate,
                 TotalAmount = order.TotalAmount,
                 Status = order.Status.ToString(),
-                CurrentStatus = order.Status,
+                CurrentStatus = order.Status.ToString(),
                 ShippingAddress = order.ShippingAddress,
                 ShippingMethod = order.ShippingMethod
             };

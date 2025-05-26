@@ -1,28 +1,25 @@
 using System;
 using System.Linq;
 using System.Web.Mvc;
+using UTM.Keto.Application;
+using UTM.Keto.Application.Interfaces;
 using UTM.Keto.Domain;
-using UTM.Keto.Infrastructure;
 using UTM.Keto.Web.Models;
 
 namespace UTM.Keto.Web.Controllers
 {
     public class FeedbackController : Controller
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IFeedbackBL _feedbackBL;
+        private readonly ISupportBL _supportBL;
+        private readonly IUserBL _userBL;
 
         public FeedbackController()
         {
-            _context = new ApplicationDbContext();
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                _context.Dispose();
-            }
-            base.Dispose(disposing);
+            var factory = BusinessLogicFactory.Instance;
+            _feedbackBL = factory.GetFeedbackBL();
+            _supportBL = factory.GetSupportBL();
+            _userBL = factory.GetUserBL();
         }
 
         // GET: Feedback
@@ -54,17 +51,14 @@ namespace UTM.Keto.Web.Controllers
                 
                 var review = new Review
                 {
-                    Id = Guid.NewGuid(),
                     UserId = userId,
                     Title = model.Title,
                     Content = model.Content,
                     Rating = model.Rating,
-                    CreatedDate = DateTime.Now,
-                    Status = ReviewStatus.PendingModeration
+                    Type = "Feedback"
                 };
                 
-                _context.Reviews.Add(review);
-                _context.SaveChanges();
+                _feedbackBL.CreateFeedback(review);
                 
                 TempData["SuccessMessage"] = "Спасибо за ваш отзыв! Он будет опубликован после проверки модератором.";
                 return RedirectToAction("ThankYou");
@@ -91,29 +85,24 @@ namespace UTM.Keto.Web.Controllers
                 
                 var ticket = new SupportTicket
                 {
-                    Id = Guid.NewGuid(),
                     UserId = userId,
                     Subject = model.Subject,
                     InitialMessage = model.Message,
-                    CreatedDate = DateTime.Now,
-                    Status = TicketStatus.Open
+                    Priority = "Normal"
                 };
+                
+                var createdTicket = _supportBL.CreateTicket(ticket);
                 
                 // Добавляем первое сообщение
                 var initialMessage = new TicketMessage
                 {
-                    Id = Guid.NewGuid(),
-                    TicketId = ticket.Id,
-                    SenderId = userId,
-                    Message = model.Message,
-                    SentDate = DateTime.Now,
+                    TicketId = createdTicket.Id,
+                    UserId = userId,
+                    Content = model.Message,
                     IsFromAdmin = false
                 };
                 
-                ticket.Messages.Add(initialMessage);
-                
-                _context.SupportTickets.Add(ticket);
-                _context.SaveChanges();
+                _supportBL.AddMessage(initialMessage);
                 
                 TempData["SuccessMessage"] = "Ваш запрос успешно отправлен. Специалисты техподдержки ответят вам в ближайшее время.";
                 return RedirectToAction("ThankYou");
@@ -130,9 +119,9 @@ namespace UTM.Keto.Web.Controllers
         
         private Guid GetCurrentUserId()
         {
-            string username = User.Identity.Name;
-            var user = _context.Users.FirstOrDefault(u => u.Email == username);
-            return user?.Id ?? Guid.Empty;
+            var ticket = System.Web.Security.FormsAuthentication.Decrypt(Request.Cookies[System.Web.Security.FormsAuthentication.FormsCookieName].Value);
+            var userData = ticket.UserData.Split('|');
+            return new Guid(userData[0]);
         }
     }
 } 

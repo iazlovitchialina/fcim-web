@@ -40,16 +40,16 @@
                                     <td>
                                         @switch (order.CurrentStatus)
                                         {
-                                            case UTM.Keto.Domain.OrderStatus.New:
+                                            case "New":
                                                 <span class="badge bg-info">New</span>
                                                 break;
-                                            case UTM.Keto.Domain.OrderStatus.Processing:
+                                            case "Processing":
                                                 <span class="badge bg-primary">Processing</span>
                                                 break;
-                                            case UTM.Keto.Domain.OrderStatus.Shipped:
+                                            case "Shipped":
                                                 <span class="badge bg-warning">Shipped</span>
                                                 break;
-                                            case UTM.Keto.Domain.OrderStatus.Delivered:
+                                            case "Delivered":
                                                 <span class="badge bg-success">Delivered</span>
                                                 break;
                                             default:

@@ -2,8 +2,9 @@ using System;
 using System.Linq;
 using System.Web.Mvc;
 using System.Collections.Generic;
+using UTM.Keto.Application;
+using UTM.Keto.Application.Interfaces;
 using UTM.Keto.Domain;
-using UTM.Keto.Infrastructure;
 using UTM.Keto.Web.Filters;
 using UTM.Keto.Web.Models;
 
@@ -12,35 +13,45 @@ namespace UTM.Keto.Web.Controllers
     [CustomAuthorize(Roles = "Admin")]
     public class AdminController : Controller
     {
-        private readonly ApplicationDbContext _db;
+        private readonly IUserBL _userBL;
+        private readonly IOrderBL _orderBL;
+        private readonly IProductBL _productBL;
 
         public AdminController()
         {
-            _db = new ApplicationDbContext();
+            var factory = BusinessLogicFactory.Instance;
+            _userBL = factory.GetUserBL();
+            _orderBL = factory.GetOrderBL();
+            _productBL = factory.GetProductBL();
         }
 
         public ActionResult Index()
         {
             // Получаем статистику для дашборда
-            ViewBag.TotalUsers = _db.Users.Count();
-            ViewBag.TotalOrders = _db.Orders.Count();
-            ViewBag.TotalProducts = _db.Products.Count();
-            ViewBag.TotalRevenue = _db.Orders.Sum(o => o.TotalAmount);
+            var users = _userBL.GetAllUsers();
+            var orders = _orderBL.GetAllOrders();
+            var products = _productBL.GetAllProducts();
+            
+            ViewBag.TotalUsers = users.Count;
+            ViewBag.TotalOrders = orders.Count;
+            ViewBag.TotalProducts = products.Count;
+            ViewBag.TotalRevenue = orders.Sum(o => o.TotalAmount);
             
             // Получаем активных пользователей (с заказами за последние 30 дней)
             var thirtyDaysAgo = DateTime.Now.AddDays(-30);
-            ViewBag.ActiveUsers = _db.Orders
+            ViewBag.ActiveUsers = orders
                 .Where(o => o.OrderDate >= thirtyDaysAgo)
                 .Select(o => o.UserId)
                 .Distinct()
                 .Count();
                 
             // Получаем самые популярные товары (топ-5)
-            ViewBag.PopularProducts = _db.OrderItems
+            var orderItems = orders.SelectMany(o => o.OrderItems).ToList();
+            ViewBag.PopularProducts = orderItems
                 .GroupBy(oi => oi.ProductId)
                 .Select(g => new { 
                     ProductId = g.Key, 
-                    ProductName = _db.Products.FirstOrDefault(p => p.Id == g.Key).Name,
+                    ProductName = _productBL.GetProductById(g.Key).Name,
                     Count = g.Sum(oi => oi.Quantity) 
                 })
                 .OrderByDescending(x => x.Count)
@@ -48,7 +59,7 @@ namespace UTM.Keto.Web.Controllers
                 .ToList();
                 
             // Получаем заказы по дням за последний месяц
-            ViewBag.DailyOrders = _db.Orders
+            ViewBag.DailyOrders = orders
                 .Where(o => o.OrderDate >= thirtyDaysAgo)
                 .GroupBy(o => o.OrderDate.Date)
                 .Select(g => new { 
@@ -74,7 +85,8 @@ namespace UTM.Keto.Web.Controllers
             startDate = startDate ?? DateTime.Now.AddDays(-30);
             endDate = endDate ?? DateTime.Now;
             
-            var salesData = _db.Orders
+            var orders = _orderBL.GetAllOrders();
+            var salesData = orders
                 .Where(o => o.OrderDate >= startDate && o.OrderDate <= endDate)
                 .GroupBy(o => o.OrderDate.Date)
                 .Select(g => new DailySalesViewModel
@@ -100,7 +112,8 @@ namespace UTM.Keto.Web.Controllers
             startDate = startDate ?? DateTime.Now.AddDays(-30);
             endDate = endDate ?? DateTime.Now;
             
-            var activeUsers = _db.Orders
+            var orders = _orderBL.GetAllOrders();
+            var activeUsers = orders
                 .Where(o => o.OrderDate >= startDate && o.OrderDate <= endDate)
                 .Select(o => o.UserId)
                 .Distinct()
@@ -110,13 +123,12 @@ namespace UTM.Keto.Web.Controllers
             
             foreach (var userId in activeUsers)
             {
-                var user = _db.Users.Find(userId);
+                var user = _userBL.GetUserById(userId);
                 if (user != null)
                 {
-                    var orderCount = _db.Orders.Count(o => o.UserId == userId && o.OrderDate >= startDate && o.OrderDate <= endDate);
-                    var totalSpent = _db.Orders
-                        .Where(o => o.UserId == userId && o.OrderDate >= startDate && o.OrderDate <= endDate)
-                        .Sum(o => o.TotalAmount);
+                    var userOrders = orders.Where(o => o.UserId == userId && o.OrderDate >= startDate && o.OrderDate <= endDate).ToList();
+                    var orderCount = userOrders.Count;
+                    var totalSpent = userOrders.Sum(o => o.TotalAmount);
                         
                     userData.Add(new UserActivityViewModel
                     {
@@ -125,7 +137,7 @@ namespace UTM.Keto.Web.Controllers
                         Email = user.Email,
                         OrderCount = orderCount,
                         TotalSpent = totalSpent,
-                        LastOrderDate = _db.Orders
+                        LastOrderDate = orders
                             .Where(o => o.UserId == userId)
                             .OrderByDescending(o => o.OrderDate)
                             .Select(o => o.OrderDate)
@@ -147,14 +159,18 @@ namespace UTM.Keto.Web.Controllers
             startDate = startDate ?? DateTime.Now.AddDays(-30);
             endDate = endDate ?? DateTime.Now;
             
-            var productData = _db.OrderItems
-                .Where(oi => _db.Orders.FirstOrDefault(o => o.Id == oi.OrderId).OrderDate >= startDate 
-                          && _db.Orders.FirstOrDefault(o => o.Id == oi.OrderId).OrderDate <= endDate)
+            var orders = _orderBL.GetAllOrders()
+                .Where(o => o.OrderDate >= startDate && o.OrderDate <= endDate)
+                .ToList();
+            
+            var orderItems = orders.SelectMany(o => o.OrderItems).ToList();
+            
+            var productData = orderItems
                 .GroupBy(oi => oi.ProductId)
                 .Select(g => new ProductSalesViewModel
                 {
                     ProductId = g.Key,
-                    ProductName = _db.Products.FirstOrDefault(p => p.Id == g.Key).Name,
+                    ProductName = _productBL.GetProductById(g.Key).Name,
                     QuantitySold = g.Sum(oi => oi.Quantity),
                     Revenue = g.Sum(oi => oi.UnitPrice * oi.Quantity)
                 })
@@ -171,7 +187,7 @@ namespace UTM.Keto.Web.Controllers
 
         public ActionResult Users()
         {
-            var users = _db.Users.ToList();
+            var users = _userBL.GetAllUsers();
             return View(users);
         }
 
@@ -182,7 +198,7 @@ namespace UTM.Keto.Web.Controllers
                 return new HttpStatusCodeResult(System.Net.HttpStatusCode.BadRequest);
             }
 
-            var user = _db.Users.Find(id);
+            var user = _userBL.GetUserById(id.Value);
             if (user == null)
             {
                 return HttpNotFound();
@@ -196,7 +212,7 @@ namespace UTM.Keto.Web.Controllers
         {
             if (ModelState.IsValid)
             {
-                var dbUser = _db.Users.Find(user.Id);
+                var dbUser = _userBL.GetUserById(user.Id);
                 if (dbUser == null)
                 {
                     return HttpNotFound();
@@ -207,7 +223,7 @@ namespace UTM.Keto.Web.Controllers
                 dbUser.PhoneNumber = user.PhoneNumber;
                 dbUser.Role = user.Role;
 
-                _db.SaveChanges();
+                _userBL.UpdateUser(dbUser);
                 
                 TempData["SuccessMessage"] = "User has been updated successfully.";
                 return RedirectToAction("Users");
@@ -222,7 +238,7 @@ namespace UTM.Keto.Web.Controllers
                 return new HttpStatusCodeResult(System.Net.HttpStatusCode.BadRequest);
             }
 
-            var user = _db.Users.Find(id);
+            var user = _userBL.GetUserById(id.Value);
             if (user == null)
             {
                 return HttpNotFound();
@@ -239,27 +255,18 @@ namespace UTM.Keto.Web.Controllers
                 return new HttpStatusCodeResult(System.Net.HttpStatusCode.BadRequest);
             }
 
-            var user = _db.Users.Find(id);
+            var user = _userBL.GetUserById(id.Value);
             if (user == null)
             {
                 return HttpNotFound();
             }
 
             string userName = user.FullName;
-            _db.Users.Remove(user);
-            _db.SaveChanges();
+            
+            _userBL.DeleteUser(id.Value);
             
             TempData["SuccessMessage"] = $"User '{userName}' has been deleted successfully.";
             return RedirectToAction("Users");
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                _db.Dispose();
-            }
-            base.Dispose(disposing);
         }
     }
 } 

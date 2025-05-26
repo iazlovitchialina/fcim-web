@@ -1,9 +1,9 @@
 using System;
-using System.Data.Entity;
 using System.Linq;
 using System.Web.Mvc;
+using UTM.Keto.Application;
+using UTM.Keto.Application.Interfaces;
 using UTM.Keto.Domain;
-using UTM.Keto.Infrastructure;
 using UTM.Keto.Web.Filters;
 using UTM.Keto.Web.Models;
 
@@ -11,20 +11,14 @@ namespace UTM.Keto.Web.Controllers
 {
     public class SupportController : Controller
     {
-        private readonly ApplicationDbContext _context;
+        private readonly ISupportBL _supportBL;
+        private readonly IUserBL _userBL;
 
         public SupportController()
         {
-            _context = new ApplicationDbContext();
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                _context.Dispose();
-            }
-            base.Dispose(disposing);
+            var factory = BusinessLogicFactory.Instance;
+            _supportBL = factory.GetSupportBL();
+            _userBL = factory.GetUserBL();
         }
 
         // GET: Support
@@ -34,22 +28,19 @@ namespace UTM.Keto.Web.Controllers
             if (User.IsInRole("Admin"))
             {
                 // Администраторы видят все тикеты
-                var allTickets = _context.SupportTickets
-                    .OrderByDescending(t => t.CreatedDate)
-                    .Include(t => t.User)
-                    .ToList();
+                var allTickets = _supportBL.GetAllTickets();
                     
                 var viewModels = allTickets.Select(t => new TicketViewModel
                 {
                     Id = t.Id,
                     TicketNumber = t.TicketNumber,
-                    UserName = t.User.FullName,
+                    UserName = _userBL.GetUserById(t.UserId).FullName,
                     Subject = t.Subject,
                     InitialMessage = t.InitialMessage,
                     CreatedDate = t.CreatedDate,
                     ClosedDate = t.ClosedDate,
                     Status = t.Status.ToString(),
-                    CurrentStatus = t.Status
+                    CurrentStatus = t.Status.ToString()
                 }).ToList();
                 
                 return View(viewModels);
@@ -58,10 +49,7 @@ namespace UTM.Keto.Web.Controllers
             {
                 // Обычные пользователи видят только свои тикеты
                 var userId = GetCurrentUserId();
-                var userTickets = _context.SupportTickets
-                    .Where(t => t.UserId == userId)
-                    .OrderByDescending(t => t.CreatedDate)
-                    .ToList();
+                var userTickets = _supportBL.GetUserTickets(userId);
                     
                 var viewModels = userTickets.Select(t => new TicketViewModel
                 {
@@ -72,7 +60,7 @@ namespace UTM.Keto.Web.Controllers
                     CreatedDate = t.CreatedDate,
                     ClosedDate = t.ClosedDate,
                     Status = t.Status.ToString(),
-                    CurrentStatus = t.Status
+                    CurrentStatus = t.Status.ToString()
                 }).ToList();
                 
                 return View(viewModels);
@@ -98,32 +86,27 @@ namespace UTM.Keto.Web.Controllers
                 
                 var ticket = new SupportTicket
                 {
-                    Id = Guid.NewGuid(),
                     UserId = userId,
                     Subject = model.Subject,
                     InitialMessage = model.Message,
-                    CreatedDate = DateTime.Now,
-                    Status = TicketStatus.Open
+                    Priority = "Normal"
                 };
+                
+                var createdTicket = _supportBL.CreateTicket(ticket);
                 
                 // Добавляем первое сообщение (начальное)
                 var initialMessage = new TicketMessage
                 {
-                    Id = Guid.NewGuid(),
-                    TicketId = ticket.Id,
-                    SenderId = userId,
-                    Message = model.Message,
-                    SentDate = DateTime.Now,
+                    TicketId = createdTicket.Id,
+                    UserId = userId,
+                    Content = model.Message,
                     IsFromAdmin = false
                 };
                 
-                ticket.Messages.Add(initialMessage);
+                _supportBL.AddMessage(initialMessage);
                 
-                _context.SupportTickets.Add(ticket);
-                _context.SaveChanges();
-                
-                TempData["SuccessMessage"] = "Тикет успешно создан. Номер тикета: " + ticket.TicketNumber;
-                return RedirectToAction("Details", new { id = ticket.Id });
+                TempData["SuccessMessage"] = "Тикет успешно создан. Номер тикета: " + createdTicket.TicketNumber;
+                return RedirectToAction("Details", new { id = createdTicket.Id });
             }
             
             return View(model);
@@ -133,10 +116,7 @@ namespace UTM.Keto.Web.Controllers
         [Authorize]
         public ActionResult Details(Guid id)
         {
-            var ticket = _context.SupportTickets
-                .Include(t => t.User)
-                .Include(t => t.Messages.Select(m => m.Sender))
-                .FirstOrDefault(t => t.Id == id);
+            var ticket = _supportBL.GetTicketById(id);
                 
             if (ticket == null)
             {
@@ -149,25 +129,27 @@ namespace UTM.Keto.Web.Controllers
                 return new HttpStatusCodeResult(System.Net.HttpStatusCode.Forbidden);
             }
             
+            var user = _userBL.GetUserById(ticket.UserId);
+            
             var viewModel = new TicketViewModel
             {
                 Id = ticket.Id,
                 TicketNumber = ticket.TicketNumber,
-                UserName = ticket.User.FullName,
+                UserName = user.FullName,
                 Subject = ticket.Subject,
                 InitialMessage = ticket.InitialMessage,
                 CreatedDate = ticket.CreatedDate,
                 ClosedDate = ticket.ClosedDate,
                 Status = ticket.Status.ToString(),
-                CurrentStatus = ticket.Status,
+                CurrentStatus = ticket.Status.ToString(),
                 Messages = ticket.Messages
-                    .OrderBy(m => m.SentDate)
+                    .OrderBy(m => m.DateSent)
                     .Select(m => new TicketMessageViewModel
                     {
                         Id = m.Id,
-                        SenderName = m.Sender.FullName,
-                        Message = m.Message,
-                        SentDate = m.SentDate,
+                        SenderName = _userBL.GetUserById(m.UserId).FullName,
+                        Message = m.Content,
+                        SentDate = m.DateSent,
                         IsFromAdmin = m.IsFromAdmin
                     }).ToList()
             };
@@ -179,7 +161,7 @@ namespace UTM.Keto.Web.Controllers
         [Authorize]
         public ActionResult Reply(Guid id)
         {
-            var ticket = _context.SupportTickets.Find(id);
+            var ticket = _supportBL.GetTicketById(id);
             if (ticket == null)
             {
                 return HttpNotFound();
@@ -214,7 +196,7 @@ namespace UTM.Keto.Web.Controllers
         {
             if (ModelState.IsValid)
             {
-                var ticket = _context.SupportTickets.Find(model.TicketId);
+                var ticket = _supportBL.GetTicketById(model.TicketId);
                 if (ticket == null)
                 {
                     return HttpNotFound();
@@ -238,23 +220,13 @@ namespace UTM.Keto.Web.Controllers
                 // Создаем новое сообщение
                 var message = new TicketMessage
                 {
-                    Id = Guid.NewGuid(),
                     TicketId = ticket.Id,
-                    SenderId = userId,
-                    Message = model.Message,
-                    SentDate = DateTime.Now,
+                    UserId = userId,
+                    Content = model.Message,
                     IsFromAdmin = User.IsInRole("Admin")
                 };
                 
-                _context.TicketMessages.Add(message);
-                
-                // Если тикет открыт и отвечает админ, переводим в статус "In Progress"
-                if (ticket.Status == TicketStatus.Open && User.IsInRole("Admin"))
-                {
-                    ticket.Status = TicketStatus.InProgress;
-                }
-                
-                _context.SaveChanges();
+                _supportBL.AddMessage(message);
                 
                 TempData["SuccessMessage"] = "Ответ успешно отправлен.";
                 return RedirectToAction("Details", new { id = ticket.Id });
@@ -269,7 +241,7 @@ namespace UTM.Keto.Web.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Close(Guid id)
         {
-            var ticket = _context.SupportTickets.Find(id);
+            var ticket = _supportBL.GetTicketById(id);
             if (ticket == null)
             {
                 return HttpNotFound();
@@ -284,10 +256,7 @@ namespace UTM.Keto.Web.Controllers
             // Пропускаем, если тикет уже закрыт
             if (ticket.Status != TicketStatus.Closed)
             {
-                ticket.Status = TicketStatus.Closed;
-                ticket.ClosedDate = DateTime.Now;
-                _context.SaveChanges();
-                
+                _supportBL.CloseTicket(id);
                 TempData["SuccessMessage"] = "Тикет успешно закрыт.";
             }
             
@@ -296,9 +265,9 @@ namespace UTM.Keto.Web.Controllers
         
         private Guid GetCurrentUserId()
         {
-            string username = User.Identity.Name;
-            var user = _context.Users.FirstOrDefault(u => u.Email == username);
-            return user?.Id ?? Guid.Empty;
+            var ticket = System.Web.Security.FormsAuthentication.Decrypt(Request.Cookies[System.Web.Security.FormsAuthentication.FormsCookieName].Value);
+            var userData = ticket.UserData.Split('|');
+            return new Guid(userData[0]);
         }
     }
 } 

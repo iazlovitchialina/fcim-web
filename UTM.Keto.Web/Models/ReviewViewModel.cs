@@ -21,7 +21,7 @@ namespace UTM.Keto.Web.Models
         
         public string Status { get; set; }
         
-        public ReviewStatus CurrentStatus { get; set; }
+        public string CurrentStatus { get; set; }
         
         public string ModerationComment { get; set; }
         
@@ -56,6 +56,6 @@ namespace UTM.Keto.Web.Models
         [Display(Name = "Комментарий модератора")]
         public string ModerationComment { get; set; }
         
-        public ReviewStatus NewStatus { get; set; }
+        public string NewStatus { get; set; }
     }
 } 

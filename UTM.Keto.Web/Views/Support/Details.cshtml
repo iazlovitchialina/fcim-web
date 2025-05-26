@@ -12,7 +12,7 @@
                 <i class="fas fa-arrow-left me-2"></i> Вернуться к списку
             </a>
             
-            @if (Model.CurrentStatus != UTM.Keto.Domain.TicketStatus.Closed)
+            @if (Model.CurrentStatus != "Closed")
             {
                 <a href="@Url.Action("Reply", new { id = Model.Id })" class="btn btn-success ms-2">
                     <i class="fas fa-reply me-2"></i> Ответить
@@ -42,16 +42,16 @@
     <div class="card mb-4">
         <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
             <h5 class="mb-0">Запрос #@Model.TicketNumber</h5>
-            <span class="badge @(Model.CurrentStatus == UTM.Keto.Domain.TicketStatus.Open ? "bg-success" : (Model.CurrentStatus == UTM.Keto.Domain.TicketStatus.Closed ? "bg-secondary" : "bg-primary"))">
+            <span class="badge @(Model.CurrentStatus == "Open" ? "bg-success" : (Model.CurrentStatus == "Closed" ? "bg-secondary" : "bg-primary"))">
                 @switch (Model.CurrentStatus)
                 {
-                    case UTM.Keto.Domain.TicketStatus.Open:
+                    case "Open":
                         <span>Открыт</span>
                         break;
-                    case UTM.Keto.Domain.TicketStatus.InProgress:
+                    case "InProgress":
                         <span>В обработке</span>
                         break;
-                    case UTM.Keto.Domain.TicketStatus.Closed:
+                    case "Closed":
                         <span>Закрыт</span>
                         break;
                     default:

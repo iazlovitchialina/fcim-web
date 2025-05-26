@@ -13,7 +13,7 @@ namespace UTM.Keto.Web.Models
         public DateTime OrderDate { get; set; }
         public decimal TotalAmount { get; set; }
         public string Status { get; set; }
-        public OrderStatus CurrentStatus { get; set; }
+        public string CurrentStatus { get; set; }
         public string ShippingAddress { get; set; }
         public string ShippingMethod { get; set; }
         public List<OrderItemViewModel> Items { get; set; }
@@ -37,13 +37,13 @@ namespace UTM.Keto.Web.Models
     public class OrderStatusViewModel
     {
         public Guid OrderId { get; set; }
-        public OrderStatus CurrentStatus { get; set; }
-        public OrderStatus NewStatus { get; set; }
-        public List<OrderStatus> AvailableStatuses { get; set; }
+        public string CurrentStatus { get; set; }
+        public string NewStatus { get; set; }
+        public List<string> AvailableStatuses { get; set; }
         
         public OrderStatusViewModel()
         {
-            AvailableStatuses = new List<OrderStatus>();
+            AvailableStatuses = new List<string>();
         }
     }
 } 

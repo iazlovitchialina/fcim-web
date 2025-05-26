@@ -1,43 +1,42 @@
 using System;
 using System.Collections.Generic;
-using System.Data.Entity;
 using System.Linq;
 using System.Web.Mvc;
+using UTM.Keto.Application;
+using UTM.Keto.Application.Interfaces;
 using UTM.Keto.Domain;
-using UTM.Keto.Infrastructure;
+using UTM.Keto.Domain.DTOs;
 using UTM.Keto.Web.Models;
 
 namespace UTM.Keto.Web.Controllers
 {
     public class ShopController : Controller
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IProductBL _productBL;
+        private readonly ICartBL _cartBL;
+        private readonly IOrderBL _orderBL;
+        private readonly IUserBL _userBL;
 
         public ShopController()
         {
-            _context = new ApplicationDbContext();
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                _context.Dispose();
-            }
-            base.Dispose(disposing);
+            var factory = BusinessLogicFactory.Instance;
+            _productBL = factory.GetProductBL();
+            _cartBL = factory.GetCartBL();
+            _orderBL = factory.GetOrderBL();
+            _userBL = factory.GetUserBL();
         }
 
         // GET: Shop
         public ActionResult Index()
         {
-            var products = _context.Products.ToList();
+            var products = _productBL.GetAllProducts();
             return View(products);
         }
 
         // GET: Shop/Details/5
         public ActionResult Details(Guid id)
         {
-            var product = _context.Products.Find(id);
+            var product = _productBL.GetProductById(id);
             if (product == null)
             {
                 return HttpNotFound();
@@ -61,7 +60,7 @@ namespace UTM.Keto.Web.Controllers
         public ActionResult AddToCart(Guid productId, int quantity = 1)
         {
             var userId = GetCurrentUserId();
-            var product = _context.Products.Find(productId);
+            var product = _productBL.GetProductById(productId);
             
             if (product == null)
             {
@@ -74,27 +73,25 @@ namespace UTM.Keto.Web.Controllers
                 return RedirectToAction("Details", new { id = productId });
             }
             
-            var cartItem = _context.CartItems.FirstOrDefault(ci => ci.UserId == userId && ci.ProductId == productId);
-            
-            if (cartItem != null)
+            var cartAction = new CartActionDto
             {
-                cartItem.Quantity += quantity;
+                UserId = userId.GetHashCode(),
+                ProductId = productId.GetHashCode(),
+                Quantity = quantity,
+                Action = "Add"
+            };
+            
+            var result = _cartBL.AddToCart(cartAction);
+            
+            if (result.IsSuccess)
+            {
+                TempData["SuccessMessage"] = $"Added {quantity} {product.Name} to your cart.";
             }
             else
             {
-                cartItem = new CartItem
-                {
-                    Id = Guid.NewGuid(),
-                    UserId = userId,
-                    ProductId = productId,
-                    Quantity = quantity
-                };
-                _context.CartItems.Add(cartItem);
+                TempData["ErrorMessage"] = result.ErrorMessage;
             }
             
-            _context.SaveChanges();
-            
-            TempData["SuccessMessage"] = $"Added {quantity} {product.Name} to your cart.";
             return RedirectToAction("Cart");
         }
 
@@ -108,21 +105,23 @@ namespace UTM.Keto.Web.Controllers
             
             foreach (var item in items)
             {
-                var cartItem = _context.CartItems.Find(item.Id);
-                if (cartItem != null && cartItem.UserId == userId)
+                var cartAction = new CartActionDto
                 {
-                    if (item.Quantity <= 0)
-                    {
-                        _context.CartItems.Remove(cartItem);
-                    }
-                    else
-                    {
-                        cartItem.Quantity = item.Quantity;
-                    }
+                    UserId = userId.GetHashCode(),
+                    ProductId = item.ProductId.GetHashCode(),
+                    Quantity = item.Quantity,
+                    Action = "Update"
+                };
+                
+                if (item.Quantity <= 0)
+                {
+                    _cartBL.RemoveFromCart(cartAction);
+                }
+                else
+                {
+                    _cartBL.UpdateCartItemQuantity(cartAction);
                 }
             }
-            
-            _context.SaveChanges();
             
             TempData["SuccessMessage"] = "Cart updated successfully.";
             return RedirectToAction("Cart");
@@ -132,16 +131,27 @@ namespace UTM.Keto.Web.Controllers
         [HttpPost]
         [Authorize]
         [ValidateAntiForgeryToken]
-        public ActionResult RemoveFromCart(Guid cartItemId)
+        public ActionResult RemoveFromCart(Guid cartItemId, Guid productId)
         {
             var userId = GetCurrentUserId();
-            var cartItem = _context.CartItems.Find(cartItemId);
             
-            if (cartItem != null && cartItem.UserId == userId)
+            var cartAction = new CartActionDto
             {
-                _context.CartItems.Remove(cartItem);
-                _context.SaveChanges();
+                UserId = userId.GetHashCode(),
+                ProductId = productId.GetHashCode(),
+                Quantity = 0,
+                Action = "Remove"
+            };
+            
+            var result = _cartBL.RemoveFromCart(cartAction);
+            
+            if (result.IsSuccess)
+            {
                 TempData["SuccessMessage"] = "Item removed from cart.";
+            }
+            else
+            {
+                TempData["ErrorMessage"] = result.ErrorMessage;
             }
             
             return RedirectToAction("Cart");
@@ -177,60 +187,21 @@ namespace UTM.Keto.Web.Controllers
             if (ModelState.IsValid)
             {
                 var userId = GetCurrentUserId();
-                var cartItems = _context.CartItems
-                    .Where(ci => ci.UserId == userId)
-                    .Include("Product")
-                    .ToList();
+                var cart = _cartBL.GetCart(userId.GetHashCode());
                 
-                if (!cartItems.Any())
+                if (cart.Items.Count == 0)
                 {
                     TempData["ErrorMessage"] = "Your cart is empty. Please add items before proceeding to checkout.";
                     return RedirectToAction("Cart");
                 }
                 
-                // Create new order
-                var order = new Order
-                {
-                    Id = Guid.NewGuid(),
-                    UserId = userId,
-                    OrderDate = DateTime.Now,
-                    ShippingAddress = model.ShippingAddress,
-                    ShippingMethod = model.ShippingMethod,
-                    Status = OrderStatus.New,
-                    TotalAmount = 0
-                };
+                var order = _orderBL.CreateOrder(userId.GetHashCode(), model.ShippingAddress);
                 
-                decimal totalAmount = 0;
-                
-                // Add order items
-                foreach (var cartItem in cartItems)
+                if (order == null)
                 {
-                    var orderItem = new OrderItem
-                    {
-                        Id = Guid.NewGuid(),
-                        OrderId = order.Id,
-                        ProductId = cartItem.ProductId,
-                        Quantity = cartItem.Quantity,
-                        UnitPrice = cartItem.Product.Price,
-                        Subtotal = cartItem.Product.Price * cartItem.Quantity
-                    };
-                    
-                    totalAmount += orderItem.Subtotal;
-                    order.OrderItems.Add(orderItem);
+                    TempData["ErrorMessage"] = "There was a problem creating your order. Please try again.";
+                    return RedirectToAction("Checkout");
                 }
-                
-                order.TotalAmount = totalAmount;
-                
-                // Save order
-                _context.Orders.Add(order);
-                
-                // Clear cart
-                foreach (var cartItem in cartItems)
-                {
-                    _context.CartItems.Remove(cartItem);
-                }
-                
-                _context.SaveChanges();
                 
                 TempData["SuccessMessage"] = "Order placed successfully. Order number: " + order.OrderNumber;
                 return RedirectToAction("MyOrders");
@@ -247,22 +218,19 @@ namespace UTM.Keto.Web.Controllers
         public ActionResult MyOrders()
         {
             var userId = GetCurrentUserId();
-            var orders = _context.Orders
-                .Where(o => o.UserId == userId)
-                .OrderByDescending(o => o.OrderDate)
-                .ToList();
+            var orders = _orderBL.GetOrdersByUserId(userId);
             
-            var viewModels = orders.Select(o => new OrderViewModel
+            var orderViewModels = orders.Select(o => new OrderViewModel
             {
                 Id = o.Id,
                 OrderNumber = o.OrderNumber,
                 OrderDate = o.OrderDate,
                 TotalAmount = o.TotalAmount,
                 Status = o.Status.ToString(),
-                CurrentStatus = o.Status
+                CurrentStatus = o.Status.ToString()
             }).ToList();
             
-            return View(viewModels);
+            return View(orderViewModels);
         }
 
         // GET: Shop/OrderDetails/5
@@ -270,73 +238,69 @@ namespace UTM.Keto.Web.Controllers
         public ActionResult OrderDetails(Guid id)
         {
             var userId = GetCurrentUserId();
-            var order = _context.Orders
-                .Include("OrderItems.Product")
-                .Include("User")
-                .FirstOrDefault(o => o.Id == id && o.UserId == userId);
+            var order = _orderBL.GetOrderById(id);
             
             if (order == null)
             {
                 return HttpNotFound();
             }
             
-            var viewModel = new OrderViewModel
+            if (order.UserId != userId)
+            {
+                return new HttpUnauthorizedResult();
+            }
+            
+            var orderViewModel = new OrderViewModel
             {
                 Id = order.Id,
                 OrderNumber = order.OrderNumber,
-                UserName = order.User.FullName,
                 OrderDate = order.OrderDate,
                 TotalAmount = order.TotalAmount,
                 Status = order.Status.ToString(),
-                CurrentStatus = order.Status,
+                CurrentStatus = order.Status.ToString(),
                 ShippingAddress = order.ShippingAddress,
                 ShippingMethod = order.ShippingMethod,
                 Items = order.OrderItems.Select(oi => new OrderItemViewModel
                 {
                     Id = oi.Id,
-                    ProductName = oi.Product.Name,
-                    ProductImagePath = oi.Product.ImagePath,
+                    ProductName = _productBL.GetProductById(oi.ProductId).Name,
                     UnitPrice = oi.UnitPrice,
                     Quantity = oi.Quantity,
-                    Subtotal = oi.Subtotal
+                    Subtotal = oi.UnitPrice * oi.Quantity
                 }).ToList()
             };
             
-            return View(viewModel);
+            return View(orderViewModel);
         }
 
         private Guid GetCurrentUserId()
         {
-            string username = User.Identity.Name;
-            var user = _context.Users.FirstOrDefault(u => u.Email == username);
-            return user?.Id ?? Guid.Empty;
+            // Получение идентификатора пользователя из билета аутентификации
+            var ticket = System.Web.Security.FormsAuthentication.Decrypt(Request.Cookies[System.Web.Security.FormsAuthentication.FormsCookieName].Value);
+            var userData = ticket.UserData.Split('|');
+            return new Guid(userData[0]);
         }
 
         private CartViewModel GetCartViewModel(Guid userId)
         {
-            var cartItems = _context.CartItems
-                .Where(ci => ci.UserId == userId)
-                .Include("Product")
-                .ToList();
+            var cart = _cartBL.GetCart(userId.GetHashCode());
             
-            var viewModel = new CartViewModel
+            var model = new CartViewModel
             {
-                Items = cartItems.Select(ci => new CartItemViewModel
+                Items = cart.Items.Select(i => new CartItemViewModel
                 {
-                    Id = ci.Id,
-                    ProductId = ci.ProductId,
-                    ProductName = ci.Product.Name,
-                    ProductImagePath = ci.Product.ImagePath,
-                    Price = ci.Product.Price,
-                    Quantity = ci.Quantity,
-                    Subtotal = ci.Product.Price * ci.Quantity
-                }).ToList()
+                    Id = new Guid(i.Id.ToString()),
+                    ProductId = new Guid(i.ProductId.ToString()),
+                    ProductName = i.ProductName,
+                    Price = i.Price,
+                    Quantity = i.Quantity,
+                    Subtotal = i.SubTotal
+                }).ToList(),
+                TotalAmount = cart.TotalPrice,
+                ItemCount = cart.Items.Count
             };
             
-            viewModel.TotalAmount = viewModel.Items.Sum(item => item.Subtotal);
-            viewModel.ItemCount = viewModel.Items.Sum(item => item.Quantity);
-            
-            return viewModel;
+            return model;
         }
     }
 } 

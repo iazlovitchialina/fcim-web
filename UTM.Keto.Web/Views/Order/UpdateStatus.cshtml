@@ -32,16 +32,16 @@
                             <div>
                                 @switch (Model.CurrentStatus)
                                 {
-                                    case UTM.Keto.Domain.OrderStatus.New:
+                                    case "New":
                                         <span class="badge bg-info p-2">New</span>
                                         break;
-                                    case UTM.Keto.Domain.OrderStatus.Processing:
+                                    case "Processing":
                                         <span class="badge bg-primary p-2">Processing</span>
                                         break;
-                                    case UTM.Keto.Domain.OrderStatus.Shipped:
+                                    case "Shipped":
                                         <span class="badge bg-warning p-2">Shipped</span>
                                         break;
-                                    case UTM.Keto.Domain.OrderStatus.Delivered:
+                                    case "Delivered":
                                         <span class="badge bg-success p-2">Delivered</span>
                                         break;
                                     default:
@@ -59,20 +59,20 @@
                                 @foreach (var status in Model.AvailableStatuses)
                                 {
                                     <div class="form-check mb-2">
-                                        @Html.RadioButtonFor(m => m.NewStatus, status, new { @class = "form-check-input", id = "status_" + (int)status })
-                                        <label class="form-check-label" for="status_@((int)status)">
+                                        @Html.RadioButtonFor(m => m.NewStatus, status, new { @class = "form-check-input", id = "status_" + status })
+                                        <label class="form-check-label" for="status_@(status)">
                                             @switch (status)
                                             {
-                                                case UTM.Keto.Domain.OrderStatus.New:
+                                                case "New":
                                                     <span class="badge bg-info">New</span>
                                                     break;
-                                                case UTM.Keto.Domain.OrderStatus.Processing:
+                                                case "Processing":
                                                     <span class="badge bg-primary">Processing</span>
                                                     break;
-                                                case UTM.Keto.Domain.OrderStatus.Shipped:
+                                                case "Shipped":
                                                     <span class="badge bg-warning">Shipped</span>
                                                     break;
-                                                case UTM.Keto.Domain.OrderStatus.Delivered:
+                                                case "Delivered":
                                                     <span class="badge bg-success">Delivered</span>
                                                     break;
                                                 default:

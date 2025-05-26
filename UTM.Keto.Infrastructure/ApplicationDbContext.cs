@@ -80,9 +80,9 @@ namespace UTM.Keto.Infrastructure
                 .WillCascadeOnDelete(false);
                 
             modelBuilder.Entity<TicketMessage>()
-                .HasRequired(tm => tm.Sender)
+                .HasRequired(tm => tm.User)
                 .WithMany()
-                .HasForeignKey(tm => tm.SenderId)
+                .HasForeignKey(tm => tm.UserId)
                 .WillCascadeOnDelete(false);
         }
     }
