@@ -1,14 +1,25 @@
 ﻿using System.Web.Mvc;
+using UTM.Keto.Application;
+using UTM.Keto.Application.Interfaces;
 
 namespace UTM.Keto.Web.Controllers
 {
     public class HomeController : Controller
     {
+        private readonly IProductBL _productBL;
+
+        public HomeController()
+        {
+            var factory = BusinessLogicFactory.Instance;
+            _productBL = factory.GetProductBL();
+        }
+
         [AllowAnonymous]
         public ActionResult Index()
         {
             ViewBag.Title = "Home";
-            return View();
+            var featuredProducts = _productBL.GetFeaturedProducts();
+            return View(featuredProducts);
         }
 
         [AllowAnonymous]

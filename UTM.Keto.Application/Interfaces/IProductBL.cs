@@ -7,6 +7,7 @@ namespace UTM.Keto.Application.Interfaces
     public interface IProductBL
     {
         List<Product> GetAllProducts();
+        List<Product> GetFeaturedProducts();
         Product GetProductById(int productId);
         Product GetProductById(Guid productId);
         void AddProduct(Product product);

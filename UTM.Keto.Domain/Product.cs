@@ -22,5 +22,7 @@ namespace UTM.Keto.Domain
         public string ImagePath { get; set; }
         
         public bool InStock { get; set; }
+        
+        public bool IsFeatured { get; set; }
     }
 } 

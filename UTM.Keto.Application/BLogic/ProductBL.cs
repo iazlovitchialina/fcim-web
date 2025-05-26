@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using UTM.Keto.Application.Interfaces;
 using UTM.Keto.Domain;
 using UTM.Keto.Infrastructure;
@@ -19,6 +20,15 @@ namespace UTM.Keto.Application.BLogic
         public List<Product> GetAllProducts()
         {
             return _db.Products.ToList();
+        }
+
+        public List<Product> GetFeaturedProducts()
+        {
+            IQueryable<Product> query = _db.Products;
+            return query.Where<Product>(p => p.IsFeatured)
+                .OrderBy<Product, string>(p => p.Name)
+                .Take<Product>(6)
+                .ToList<Product>();
         }
 
         public Product GetProductById(int productId)
@@ -45,6 +55,9 @@ namespace UTM.Keto.Application.BLogic
                 existingProduct.Name = product.Name;
                 existingProduct.Description = product.Description;
                 existingProduct.Price = product.Price;
+                existingProduct.IsFeatured = product.IsFeatured;
+                existingProduct.InStock = product.InStock;
+                existingProduct.ImagePath = product.ImagePath;
                 _db.SaveChanges();
             }
         }

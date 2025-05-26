@@ -16,6 +16,17 @@ namespace UTM.Keto.Web.Models
         [Display(Name = "Shipping Method")]
         public string ShippingMethod { get; set; }
         
+        [Display(Name = "Full Name")]
+        public string UserName { get; set; }
+        
+        [Display(Name = "Email")]
+        [EmailAddress]
+        public string Email { get; set; }
+        
+        [Display(Name = "Phone Number")]
+        [Phone]
+        public string PhoneNumber { get; set; }
+        
         public CartViewModel Cart { get; set; }
         
         public CheckoutViewModel()

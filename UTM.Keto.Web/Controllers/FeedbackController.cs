@@ -25,7 +25,22 @@ namespace UTM.Keto.Web.Controllers
         // GET: Feedback
         public ActionResult Index()
         {
-            return View();
+            var feedbacks = _feedbackBL.GetAllFeedback();
+            var model = new FeedbackViewModel();
+            
+            model.Feedbacks = feedbacks
+                .Where(f => f.Status == ReviewStatus.Approved)
+                .Select(f => new ReviewViewModel
+                {
+                    Id = f.Id,
+                    UserName = f.UserId != Guid.Empty ? _userBL.GetUserById(f.UserId).FullName : "Анонимный пользователь",
+                    Title = f.Title,
+                    Content = f.Content,
+                    Rating = f.Rating,
+                    CreatedDate = f.CreatedDate
+                }).ToList();
+            
+            return View(model);
         }
 
         // POST: Feedback/SubmitReview
@@ -64,7 +79,25 @@ namespace UTM.Keto.Web.Controllers
                 return RedirectToAction("ThankYou");
             }
             
-            return View("Index", model);
+            // Если валидация не прошла, подготавливаем модель для повторного отображения формы
+            var feedbacks = _feedbackBL.GetAllFeedback();
+            var viewModel = new FeedbackViewModel();
+            
+            viewModel.Feedbacks = feedbacks
+                .Where(f => f.Status == ReviewStatus.Approved)
+                .Select(f => new ReviewViewModel
+                {
+                    Id = f.Id,
+                    UserName = f.UserId != Guid.Empty ? _userBL.GetUserById(f.UserId).FullName : "Анонимный пользователь",
+                    Title = f.Title,
+                    Content = f.Content,
+                    Rating = f.Rating,
+                    CreatedDate = f.CreatedDate
+                }).ToList();
+                
+            viewModel.ReviewForm = model;
+            
+            return View("Index", viewModel);
         }
         
         // GET: Feedback/SubmitTicket
@@ -82,6 +115,7 @@ namespace UTM.Keto.Web.Controllers
                 }
                 
                 var userId = GetCurrentUserId();
+                var user = _userBL.GetUserById(userId);
                 
                 var ticket = new SupportTicket
                 {
@@ -108,7 +142,25 @@ namespace UTM.Keto.Web.Controllers
                 return RedirectToAction("ThankYou");
             }
             
-            return View("Index", model);
+            // Если валидация не прошла, подготавливаем модель для повторного отображения формы
+            var feedbacks = _feedbackBL.GetAllFeedback();
+            var viewModel = new FeedbackViewModel();
+            
+            viewModel.Feedbacks = feedbacks
+                .Where(f => f.Status == ReviewStatus.Approved)
+                .Select(f => new ReviewViewModel
+                {
+                    Id = f.Id,
+                    UserName = f.UserId != Guid.Empty ? _userBL.GetUserById(f.UserId).FullName : "Анонимный пользователь",
+                    Title = f.Title,
+                    Content = f.Content,
+                    Rating = f.Rating,
+                    CreatedDate = f.CreatedDate
+                }).ToList();
+                
+            viewModel.TicketForm = model;
+            
+            return View("Index", viewModel);
         }
         
         // GET: Feedback/ThankYou

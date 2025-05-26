@@ -30,6 +30,15 @@ namespace UTM.Keto.Web.Controllers
         public ActionResult Index()
         {
             var products = _productBL.GetAllProducts();
+            
+            // Получаем информацию о текущем пользователе, если он авторизован
+            if (User.Identity.IsAuthenticated)
+            {
+                var userId = GetCurrentUserId();
+                var user = _userBL.GetUserById(userId);
+                ViewBag.UserName = user.FullName;
+            }
+            
             return View(products);
         }
 
@@ -41,6 +50,15 @@ namespace UTM.Keto.Web.Controllers
             {
                 return HttpNotFound();
             }
+            
+            // Получаем информацию о пользователе
+            if (User.Identity.IsAuthenticated)
+            {
+                var userId = GetCurrentUserId();
+                var user = _userBL.GetUserById(userId);
+                ViewBag.UserName = user.FullName;
+            }
+            
             return View(product);
         }
 
@@ -50,6 +68,11 @@ namespace UTM.Keto.Web.Controllers
         {
             var userId = GetCurrentUserId();
             var model = GetCartViewModel(userId);
+            
+            // Добавляем информацию о пользователе
+            var user = _userBL.GetUserById(userId);
+            ViewBag.UserName = user.FullName;
+            
             return View(model);
         }
 
@@ -170,9 +193,15 @@ namespace UTM.Keto.Web.Controllers
                 return RedirectToAction("Cart");
             }
             
+            // Получаем данные пользователя для оформления заказа
+            var user = _userBL.GetUserById(userId);
+            
             var model = new CheckoutViewModel
             {
-                Cart = cartViewModel
+                Cart = cartViewModel,
+                UserName = user.FullName,
+                Email = user.Email,
+                PhoneNumber = user.PhoneNumber
             };
             
             return View(model);
@@ -219,11 +248,13 @@ namespace UTM.Keto.Web.Controllers
         {
             var userId = GetCurrentUserId();
             var orders = _orderBL.GetOrdersByUserId(userId);
+            var user = _userBL.GetUserById(userId);
             
             var orderViewModels = orders.Select(o => new OrderViewModel
             {
                 Id = o.Id,
                 OrderNumber = o.OrderNumber,
+                UserName = user.FullName,
                 OrderDate = o.OrderDate,
                 TotalAmount = o.TotalAmount,
                 Status = o.Status.ToString(),
@@ -250,10 +281,13 @@ namespace UTM.Keto.Web.Controllers
                 return new HttpUnauthorizedResult();
             }
             
+            var user = _userBL.GetUserById(userId);
+            
             var orderViewModel = new OrderViewModel
             {
                 Id = order.Id,
                 OrderNumber = order.OrderNumber,
+                UserName = user.FullName,
                 OrderDate = order.OrderDate,
                 TotalAmount = order.TotalAmount,
                 Status = order.Status.ToString(),

@@ -138,6 +138,8 @@
         </Compile>
         <Compile Include="Models\CartViewModel.cs" />
         <Compile Include="Models\CheckoutViewModel.cs" />
+        <Compile Include="Models\CreateTicketViewModel.cs" />
+        <Compile Include="Models\FeedbackViewModel.cs" />
         <Compile Include="Models\OrderViewModel.cs" />
         <Compile Include="Models\ReportViewModels.cs" />
         <Compile Include="Models\ReviewViewModel.cs" />
