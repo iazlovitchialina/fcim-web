@@ -30,6 +30,9 @@ namespace UTM.Keto.Domain
         
         public string ModerationComment { get; set; }
         
+        // Тип отзыва (обычный отзыв или обратная связь)
+        public string Type { get; set; }
+        
         // Если отзыв относится к товару
         public Guid? ProductId { get; set; }
         
@@ -40,6 +43,7 @@ namespace UTM.Keto.Domain
         {
             CreatedDate = DateTime.Now;
             Status = ReviewStatus.PendingModeration;
+            Type = "Review"; // По умолчанию - обычный отзыв
         }
     }
     

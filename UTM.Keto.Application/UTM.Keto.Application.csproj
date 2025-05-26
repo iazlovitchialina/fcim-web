@@ -49,16 +49,22 @@
     </ItemGroup>
     <ItemGroup>
         <Compile Include="BLogic\CartBL.cs" />
+        <Compile Include="BLogic\FeedbackBL.cs" />
         <Compile Include="BLogic\OrderBL.cs" />
         <Compile Include="BLogic\ProductBL.cs" />
+        <Compile Include="BLogic\ReviewBL.cs" />
         <Compile Include="BLogic\RoleBL.cs" />
+        <Compile Include="BLogic\SupportBL.cs" />
         <Compile Include="BLogic\UserBL.cs" />
         <Compile Include="BusinessLogicFactory.cs" />
         <Compile Include="Core\BaseApi.cs" />
         <Compile Include="Interfaces\ICartBL.cs" />
+        <Compile Include="Interfaces\IFeedbackBL.cs" />
         <Compile Include="Interfaces\IOrderBL.cs" />
         <Compile Include="Interfaces\IProductBL.cs" />
+        <Compile Include="Interfaces\IReviewBL.cs" />
         <Compile Include="Interfaces\IRoleBL.cs" />
+        <Compile Include="Interfaces\ISupportBL.cs" />
         <Compile Include="Interfaces\IUserBL.cs" />
         <Compile Include="Properties\AssemblyInfo.cs" />
     </ItemGroup>

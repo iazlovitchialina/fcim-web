@@ -14,23 +14,23 @@ namespace UTM.Keto.Domain
         public virtual SupportTicket Ticket { get; set; }
         
         [Required]
-        public Guid SenderId { get; set; }
+        public Guid UserId { get; set; }
         
-        [ForeignKey("SenderId")]
-        public virtual User Sender { get; set; }
-        
-        [Required]
-        public string Message { get; set; }
+        [ForeignKey("UserId")]
+        public virtual User User { get; set; }
         
         [Required]
-        public DateTime SentDate { get; set; }
+        public string Content { get; set; }
+        
+        [Required]
+        public DateTime DateSent { get; set; }
         
         [Required]
         public bool IsFromAdmin { get; set; }
         
         public TicketMessage()
         {
-            SentDate = DateTime.Now;
+            DateSent = DateTime.Now;
         }
     }
 } 

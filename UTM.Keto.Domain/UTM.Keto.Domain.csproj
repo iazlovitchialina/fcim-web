@@ -41,12 +41,18 @@
         <Reference Include="System.ComponentModel.DataAnnotations" />
         <Reference Include="System.Core"/>
         <Reference Include="System.Data"/>
+        <Reference Include="System.Web" />
         <Reference Include="System.Xml"/>
     </ItemGroup>
     <ItemGroup>
         <Compile Include="BaseEntity.cs" />
         <Compile Include="Booking.cs" />
         <Compile Include="CartItem.cs" />
+        <Compile Include="DTOs\AuthResultDto.cs" />
+        <Compile Include="DTOs\CartActionDto.cs" />
+        <Compile Include="DTOs\CartResultDto.cs" />
+        <Compile Include="DTOs\SignOutResultDto.cs" />
+        <Compile Include="DTOs\UserProfileDto.cs" />
         <Compile Include="Hotel.cs" />
         <Compile Include="Interfaces\IBookingRepository.cs" />
         <Compile Include="Interfaces\IHotelRepository.cs" />

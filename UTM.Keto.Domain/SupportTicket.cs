@@ -31,6 +31,9 @@ namespace UTM.Keto.Domain
         
         public string TicketNumber { get; set; }
         
+        // Приоритет тикета
+        public string Priority { get; set; }
+        
         public virtual ICollection<TicketMessage> Messages { get; set; }
         
         public SupportTicket()
@@ -39,6 +42,7 @@ namespace UTM.Keto.Domain
             CreatedDate = DateTime.Now;
             Status = TicketStatus.Open;
             TicketNumber = GenerateTicketNumber();
+            Priority = "Normal";
         }
         
         private string GenerateTicketNumber()

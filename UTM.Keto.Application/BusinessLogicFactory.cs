@@ -39,5 +39,20 @@ namespace UTM.Keto.Application
         public IProductBL GetProductBL() => _productBL.Value;
         public ICartBL GetCartBL() => _cartBL.Value;
         public IOrderBL GetOrderBL() => _orderBL.Value;
+
+        public ISupportBL GetSupportBL()
+        {
+            return new SupportBL();
+        }
+
+        public IReviewBL GetReviewBL()
+        {
+            return new ReviewBL();
+        }
+
+        public IFeedbackBL GetFeedbackBL()
+        {
+            return new FeedbackBL();
+        }
     }
 } 
